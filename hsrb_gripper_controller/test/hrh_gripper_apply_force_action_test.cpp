@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2022 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -30,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Test of Hrh grip control action
+/// @brief Test for Hrh grip control action
 
 #include <gtest/gtest.h>
 
@@ -74,7 +69,7 @@ TEST_F(ApplyForceActionTest, ActionSucceeded) {
   EXPECT_TRUE((WaitForStatus<ActionType, rclcpp::node_interfaces::NodeBaseInterface::SharedPtr>(
     controller_, { node_->get_node_base_interface() }, goal_handle, action_msgs::msg::GoalStatus::STATUS_SUCCEEDED)));
 
-  // Since do_control_stop is false, it continues to update the position even after the action is completed
+  // Since do_control_stop is false, the position continues to update even after the action is completed
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
   EXPECT_GT(std::abs(hardware_->position->command() - last_command), kEpsilon);
 }
@@ -105,7 +100,7 @@ TEST_F(ApplyForceActionTest, ControlStopAfterCompletion) {
   EXPECT_TRUE((WaitForStatus<ActionType, rclcpp::node_interfaces::NodeBaseInterface::SharedPtr>(
     controller_, { node_->get_node_base_interface() }, goal_handle, action_msgs::msg::GoalStatus::STATUS_SUCCEEDED)));
 
-  // Since do_control_stop is true, it does not update the position after the action is completed
+  // Since do_control_stop is true, the position does not update after the action is completed
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
   EXPECT_DOUBLE_EQ(hardware_->position->command(), last_command);
 }
@@ -158,7 +153,7 @@ TEST_F(ApplyForceActionTest, PreemptFromOutside) {
   EXPECT_TRUE((WaitForStatus<ActionType, rclcpp::node_interfaces::NodeBaseInterface::SharedPtr>(
     controller_, { node_->get_node_base_interface() }, goal_handle, action_msgs::msg::GoalStatus::STATUS_CANCELED)));
 
-  // Since there was an interruption, it stops updating even if do_control_stop is false
+  // Since there was an interruption, the update stops even if do_control_stop is false
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
   EXPECT_DOUBLE_EQ(hardware_->position->command(), last_command);
 }
@@ -192,7 +187,7 @@ TEST_F(ApplyForceActionTest, CancelGoal) {
   EXPECT_TRUE((WaitForStatus<ActionType, rclcpp::node_interfaces::NodeBaseInterface::SharedPtr>(
     controller_, { node_->get_node_base_interface() }, goal_handle, action_msgs::msg::GoalStatus::STATUS_CANCELED)));
 
-  // Since there was an interruption, it stops updating even if do_control_stop is false
+  // Since there was an interruption, the update stops even if do_control_stop is false
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
   EXPECT_DOUBLE_EQ(hardware_->position->command(), last_command);
 }
@@ -279,7 +274,7 @@ TEST_F(ApplyForceActionTest, StallTimeout) {
   EXPECT_FALSE((WaitForStatus<ActionType, rclcpp::node_interfaces::NodeBaseInterface::SharedPtr>(
     controller_, { node_->get_node_base_interface() }, goal_handle, action_msgs::msg::GoalStatus::STATUS_ABORTED)));
 
-  // Since it waits for 1 second in the above WaitForStatus, just wait for the remaining time
+  // Since the above WaitForStatus waits for 1 second, just wait for the remaining time
   std::this_thread::sleep_for(std::chrono::milliseconds(150));
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
 

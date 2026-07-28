@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2016 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -50,7 +45,7 @@ namespace hsrb_gripper_controller {
 
 bool ValidateTrajectory(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
                         const trajectory_msgs::msg::JointTrajectory& trajectory, const std::string& joint_name) {
-  // Gripper is assumed to be single-axis
+  // Gripper assumes a single axis
   if (trajectory.joint_names.size() != 1) {
     RCLCPP_ERROR(node->get_logger(), "Can't accept new action goals. joint_names' size is invalid.");
     return false;
@@ -99,7 +94,7 @@ HrhGripperFollowTrajectoryAction::HrhGripperFollowTrajectoryAction(HrhGripperCon
       position_correction_value_(0.0) {}
 
 void HrhGripperFollowTrajectoryAction::Update(const rclcpp::Time& time) {
-  // Check if there is a trajectory, might be unnecessary since Update should only be called in trajectory following mode
+  // Check if there is a trajectory; Update should only be called in trajectory following mode, so it might not be necessary
   auto current_msg = trajectory_ptr_->get_trajectory_msg();
   auto new_msg = trajectory_msg_buffer_.readFromRT();
   if (current_msg != *new_msg) {
@@ -129,7 +124,7 @@ void HrhGripperFollowTrajectoryAction::Update(const rclcpp::Time& time) {
   last_sampled_time_ = time;
   last_command_state_ = desired_state;
 
-  // Response to overcurrent when something is gripped while closing
+  // Handling overcurrent when gripping something while closing
   if (current_min_ < 0.0) {
     if (controller_->GetCurrent() < current_min_) {
       position_correction_value_ += position_correction_incresing_step_;
@@ -145,7 +140,7 @@ void HrhGripperFollowTrajectoryAction::Update(const rclcpp::Time& time) {
   }
   controller_->SetComandPosition(desired_state.positions[0]);
 
-  // Success determination, only checks goal tolerance for gripper
+  // Success/failure judgment; only checks goal tolerance for the gripper
   const auto active_goal = *goal_handle_buffer_.readFromNonRT();
   if (!active_goal) {
     return;
@@ -220,7 +215,7 @@ bool HrhGripperFollowTrajectoryAction::InitImpl(const rclcpp_lifecycle::Lifecycl
   open_loop_control_ = GetParameter(node, "open_loop_control", false);
   std::string gripper_namespace = GetParameter(node, "namespace", "~");
 
-  // Flag to determine whether to control with output axis corrected for spring
+  // Flag to determine whether to control using the output axis corrected for spring compensation
   do_output_position_control_ = GetParameter<bool>(node, "do_output_position_control", false);
 
   goal_condition_buffer_.initRT(GoalCondition());
@@ -234,8 +229,8 @@ bool HrhGripperFollowTrajectoryAction::InitImpl(const rclcpp_lifecycle::Lifecycl
       interface_name, 1,
       std::bind(&HrhGripperFollowTrajectoryAction::TrajectoryCommandCallback, this, std::placeholders::_1));
 
-  // Obtain parameters for response to overcurrent when closing, default is disabled with current_min set to 0.0
-  // Default value for step is set to a value that was experimentally good
+  // Retrieve parameters for handling overcurrent when closing; by default, current_min is set to 0.0 to disable
+  // Default value for step is set to an experimentally good value
   current_min_ = GetParameter(node, "position_control_current_min", 0.0);
   position_correction_incresing_step_ = GetParameter(node, "position_correction_incresing_step", 0.01);
   position_correction_decresing_step_ = GetParameter(node, "position_correction_decresing_step", 0.001);

@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2015 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -41,8 +36,9 @@ DAMAGE.
 #include <Eigen/Core>
 
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
-#include <realtime_tools/realtime_publisher.hpp>
 #include <tf2_msgs/msg/tf_message.hpp>
+
+#include <tmc_realtime_tools/realtime_publisher.hpp>
 
 #include <hsrb_base_controllers/omni_base_input_odometry.hpp>
 #include <hsrb_base_controllers/twin_caster_drive.hpp>
@@ -67,9 +63,9 @@ class Odometry {
   Eigen::Vector3d velocity() const { return velocity_; }
 
  protected:
-  // Cart odometry
+  // Cart Odometry
   Eigen::Vector3d odometry_;
-  // Cart speed
+  // Cart Speed
   Eigen::Vector3d velocity_;
 };
 
@@ -117,30 +113,30 @@ class WheelOdometry : public Odometry {
   std::string tf_prefix_;
   std::string wheel_base_frame_;
   std::string wheel_odom_frame_;
-  // Omnidirectional cart model
+  // Omnidirectional Cart Model
   TwinCasterDrive::Ptr twin_drive_;
 
-  // Time when odometry was last published
+  // Time of last odometry publication
   rclcpp::Time last_odometry_published_time_;
-  // Time when odometry tf was last published
+  // Time of last odometry tf publication
   rclcpp::Time last_transform_published_time_;
 
-  // Odometry publisher
-  using OdometryPublisher = realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>;
+  // Odometry Publisher
+  using OdometryPublisher = tmc_realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>;
   using OdometryPublisherPtr = std::unique_ptr<OdometryPublisher>;
   OdometryPublisherPtr odometry_publisher_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odometry_publisher_impl_;
 
-  // Odometry publishing cycle
+  // Odometry publication cycle
   rclcpp::Duration odometry_publish_period_;
 
-  // Odometry tf publisher
-  using TFPublisher = realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>;
+  // Odometry tf Publisher
+  using TFPublisher = tmc_realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>;
   using TFPublisherPtr = std::unique_ptr<TFPublisher>;
   TFPublisherPtr transform_publisher_;
   rclcpp::Publisher<tf2_msgs::msg::TFMessage>::SharedPtr transform_publisher_impl_;
 
-  // Odometry tf publishing cycle
+  // Odometry tf publication cycle
   rclcpp::Duration transform_publish_period_;
 };
 

@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2019 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -31,32 +26,32 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file omni_base_control_method.cpp
-/// @brief Omnidirectional cart control mode class
+/// @brief Omnidirectional Cart Control Mode Class
 
 #include <hsrb_base_controllers/omni_base_control_method.hpp>
 
 #include "utils.hpp"
 
 namespace {
-// Default value for cart speed specification interruption judgment time [s]
+// Default value for cart speed command interruption judgment time [s]
 constexpr double kDefaultCommandTimeout = 0.5;
 // Threshold for the magnitude of speed to be judged as stopped
 constexpr double kStopVelocityThreshold = 0.001;
-// Time margin to be judged as path following stop [s]
+// Time margin to judge as stopped for path following [s]
 constexpr double kStopTimeMergin = 0.2;
-// Control P gain for deviation in trajectory following
+// Control P gain for trajectory following deviation
 constexpr double kDefaultPGain = 1.0;
 
-// Create an array to sort two name arrays with different orders
+// Create an array to rearrange two name arrays with different orders
 std::vector<uint32_t> MakePermutationVector(
     const std::vector<std::string>& names1,
     const std::vector<std::string>& names2) {
-  // Terminate if the input array sizes do not match
+  // Exit if the input array sizes do not match
   if (names1.size() != names2.size()) {
     return std::vector<uint32_t>();
   }
 
-  // Find matching names and create an array for sorting
+  // Find matching names and create an array for rearrangement
   std::vector<uint32_t> permutation_vector(names1.size());
   for (std::vector<std::string>::const_iterator it1 = names1.begin(); it1 != names1.end(); ++it1) {
     std::vector<std::string>::const_iterator it2 = std::find(names2.begin(), names2.end(), *it1);
@@ -76,7 +71,7 @@ namespace hsrb_base_controllers {
 
 OmniBaseVelocityControl::OmniBaseVelocityControl(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node)
     : node_(node) {
-  // Get speed command value interruption judgment time
+  // Get the speed command interruption judgment time
   command_timeout_ = GetParameter(node, "command_timeout", kDefaultCommandTimeout);
   if (command_timeout_ <= 0.0) {
     RCLCPP_INFO(
@@ -84,7 +79,7 @@ OmniBaseVelocityControl::OmniBaseVelocityControl(const rclcpp_lifecycle::Lifecyc
       "command_timeout must be positive. Use default value [%lf]", kDefaultCommandTimeout);
     command_timeout_ = kDefaultCommandTimeout;
   }
-  // Call in the constructor and initialize just in case
+  // Also call in the constructor and initialize just in case
   Activate();
 }
 
@@ -95,7 +90,7 @@ void OmniBaseVelocityControl::Activate() {
   last_velocity_subscribed_time_ = node_->get_clock()->now();
 }
 
-// Get command speed
+// Get the command speed
 Eigen::Vector3d OmniBaseVelocityControl::GetOutputVelocity() {
   std::lock_guard<std::mutex> lock(command_mutex_);
 
@@ -106,7 +101,7 @@ Eigen::Vector3d OmniBaseVelocityControl::GetOutputVelocity() {
   return output_velocity;
 }
 
-// Update command speed
+// Update the command speed
 void OmniBaseVelocityControl::UpdateCommandVelocity(const geometry_msgs::msg::Twist::SharedPtr& msg) {
   std::lock_guard<std::mutex> lock(command_mutex_);
 
@@ -132,7 +127,7 @@ void OmniBaseTrajectoryControl::Activate() {
   has_last_command_state_ = false;
 }
 
-// Update the trajectory being followed, return true if trajectory exists
+// Update the trajectory being followed, return true if a trajectory exists
 bool OmniBaseTrajectoryControl::UpdateActiveTrajectory() {
   const auto current_msg = trajectory_ptr_->get_trajectory_msg();
   const auto new_msg = trajectory_msg_buffer_.readFromRT();
@@ -150,7 +145,7 @@ bool OmniBaseTrajectoryControl::UpdateActiveTrajectory() {
   }
 }
 
-// Get target state for trajectory following
+// Get the target state for trajectory following
 bool OmniBaseTrajectoryControl::SampleDesiredState(
     const rclcpp::Time& time,
     const std::vector<double>& current_positions,
@@ -186,7 +181,7 @@ bool OmniBaseTrajectoryControl::SampleDesiredState(
   return is_ok;
 }
 
-// Validate input trajectory command
+// Validate the input trajectory command
 bool OmniBaseTrajectoryControl::ValidateTrajectory(const trajectory_msgs::msg::JointTrajectory& trajectory) const {
   // Invalid if joint names do not match
   if (trajectory.joint_names.size() != coordinate_names_.size()) {
@@ -200,7 +195,7 @@ bool OmniBaseTrajectoryControl::ValidateTrajectory(const trajectory_msgs::msg::J
     }
   }
 
-  // Check if contents are valid for each JointTrajectoryPoint
+  // Check if each JointTrajectoryPoint is valid
   double last_time = -std::numeric_limits<double>::max();
   for (const auto& point : trajectory.points) {
     // Invalid if the number of position elements does not match the number of joints
@@ -249,7 +244,7 @@ void OmniBaseTrajectoryControl::TerminateControl(const rclcpp::Time& time, const
   }
 
   const double time_from_start = (time - (*trajectory_active_ptr_)->time_from_start()).seconds();
-  // End trajectory following if past the planned following time and currently stationary
+  // End trajectory following if the scheduled following time has passed and the current state is stationary
   const rclcpp::Duration command_trajectory_period = (--((*trajectory_active_ptr_)->end()))->time_from_start;
   if ((time_from_start > command_trajectory_period.seconds() + kStopTimeMergin) &&
       (current_velocity < stop_velocity_threshold_)) {
@@ -264,7 +259,7 @@ int32_t OmniBaseTrajectoryControl::CheckTorelances(const ControllerState& state,
   Convert(state.error, error);
 
   if (before_last_point) {
-    // Since trajectory is being followed, just check if the path is not deviated
+    // Since trajectory is being followed, just check if the path is deviating
     for (uint32_t i = 0; i < active_tolerances_.state_tolerance.size(); ++i) {
       if (!check_state_tolerance_per_joint(error, i, active_tolerances_.state_tolerance[i])) {
         RCLCPP_ERROR(node_->get_logger(), "Path tolerance violated.");
@@ -272,7 +267,7 @@ int32_t OmniBaseTrajectoryControl::CheckTorelances(const ControllerState& state,
       }
     }
   } else {
-    // Check if goal is reached, wait if within time
+    // Check if the goal is reached, wait if within the time
     bool abort = false;
     for (uint32_t i = 0; i < active_tolerances_.goal_state_tolerance.size(); ++i) {
       if (!check_state_tolerance_per_joint(error, i, active_tolerances_.goal_state_tolerance[i])) {
@@ -283,14 +278,14 @@ int32_t OmniBaseTrajectoryControl::CheckTorelances(const ControllerState& state,
     if (!abort) {
       return control_msgs::action::FollowJointTrajectory::Result::SUCCESSFUL;
     } else if (active_tolerances_.goal_time_tolerance != 0.0) {
-      // != with 0.0 is dangerous, but since the default value is 0.0, proceed with this
+      // Using != with 0.0 is risky, but since the default value is 0.0, proceed with this
       if (time_from_trajectory_end > active_tolerances_.goal_time_tolerance) {
         RCLCPP_ERROR(node_->get_logger(), "Goal tolerance violated.");
         return control_msgs::action::FollowJointTrajectory::Result::GOAL_TOLERANCE_VIOLATED;
       }
     }
   }
-  // Defined error codes are 0 or less, so return a positive number to indicate none
+  // Defined error codes are 0 or less, so return a positive number to indicate none of them
   return 1;
 }
 
@@ -305,15 +300,15 @@ OmniBaseOdomTrajectoryControl::OmniBaseOdomTrajectoryControl(
   feedback_gain_(kIndexBaseTheta) = GetPositiveParameter(node, "odom_t.p_gain", kDefaultPGain);
 }
 
-// Get command speed
+// Get the command speed
 Eigen::Vector3d OmniBaseOdomTrajectoryControl::GetOutputVelocity(
     const ControllerState& base_state) {
-  // Add term proportional to position difference to command speed for target speed
+  // Add a term proportional to the position difference to the command speed to make it the target speed
   const Eigen::Vector3d desired(base_state.desired.velocities.data());
   const Eigen::Vector3d error(base_state.error.positions.data());
   Eigen::Vector3d output_velocity = desired + feedback_gain_.cwiseProduct(error);
 
-  // Convert speed in reference coordinate system to body coordinate system
+  // Convert the speed in the reference coordinate system to the upper body coordinate system
   const double current_yaw = base_state.actual.positions.at(kIndexBaseTheta);
   Eigen::Matrix3d robot_to_floor;
   robot_to_floor <<
@@ -335,11 +330,11 @@ void OmniBaseOdomTrajectoryControl::AcceptTrajectory(
     return;
   }
 
-  // Create sorting array for input msg
+  // Create a rearrangement array for the input message
   const std::vector<std::string> trajectory_joint_names = trajectory->joint_names;
   const std::vector<uint32_t> permutation_vector = MakePermutationVector(coordinate_names_, trajectory_joint_names);
 
-  // Create trajectory considering the order of axis name description
+  // Create a trajectory considering the order of axis name descriptions
   trajectory_msgs::msg::JointTrajectory permutated_trajectory;
   permutated_trajectory.header = trajectory->header;
   permutated_trajectory.joint_names = trajectory->joint_names;
@@ -359,7 +354,7 @@ void OmniBaseOdomTrajectoryControl::AcceptTrajectory(
     point.time_from_start = input_point.time_from_start;
     permutated_trajectory.points.push_back(point);
   }
-  // Correction of rotation axis
+  // Correct the turning axis
   double prev_position;
   if (open_loop_control_ && has_last_command_state_) {
     prev_position = last_command_state_.positions[kIndexBaseTheta];

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -39,10 +39,10 @@ namespace {
 // Fingertip distance publish frequency [Hz]
 const double kDefaultDistancePublishRate = 50.0;
 
-// Default hand physical parameters
+// Default physical parameters of the hand
 const double kDefaultProximalToDistalZ = 0.07;
 const double kDefaultDistancePalmToTip = 0.002194;
-// Default axis names to load in the urdf robot model
+// Default axis names to load in the URDF robot model
 const char* kDefaultProximalJointName = "hand_l_proximal_joint";
 const char* kDefaultDistalJointName = "hand_l_distal_joint";
 const char* kDefaultMimicDistalJointName = "hand_l_mimic_distal_joint";
@@ -87,7 +87,7 @@ bool HrhGripperDistanceCalculator::InitializeHandSizeData(
   double distal_joint_angle_offset = fabs(distal_joint->mimic->offset);
   double palm_to_proximal_y = fabs(proximal_joint->parent_to_joint_origin_transform.position.y);
 
-  // Store values used for calculating opening width
+  // Store values used for calculating the opening width
   proximal_to_distal_z_ = fabs(mimic_distal_joint->parent_to_joint_origin_transform.position.z);
   distance_palm_to_tip_ = palm_to_proximal_y
                           - (distal_to_tip_y * cos(distal_joint_angle_offset)
@@ -96,12 +96,12 @@ bool HrhGripperDistanceCalculator::InitializeHandSizeData(
   return true;
 }
 
-/// Calculate opening width from hand angle
+/// Calculate the opening width from the hand angle
 double HrhGripperDistanceCalculator::GetDistanceFromPosition(double hand_motor_pos) const {
   return GetDistanceFromPosition(hand_motor_pos, 0.0, 0.0);
 }
 
-/// Calculate opening width from hand angle and each finger's angle
+/// Calculate the opening width from the hand angle and each finger angle
 double HrhGripperDistanceCalculator::GetDistanceFromPosition(
     double hand_motor_pos, double left_spring_proximal_joint_pos,
     double right_spring_proximal_joint_pos) const {
@@ -111,7 +111,7 @@ double HrhGripperDistanceCalculator::GetDistanceFromPosition(
   return ploximal_to_distal + 2.0 * distance_palm_to_tip_;
 }
 
-/// Calculate hand angle from opening width
+/// Calculate the hand angle from the opening width
 double HrhGripperDistanceCalculator::GetPositionFromDistance(double distance) const {
   return asin((distance / 2.0 - distance_palm_to_tip_) / proximal_to_distal_z_);
 }

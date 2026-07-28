@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -33,7 +33,7 @@ DAMAGE.
 
 namespace {
 
-// Cart status publish frequency [Hz]
+// Trolley state publish frequency [Hz]
 const double kDefaultStatePublishRate = 50.0;
 
 void CalculateError(const std::vector<double>& reference,

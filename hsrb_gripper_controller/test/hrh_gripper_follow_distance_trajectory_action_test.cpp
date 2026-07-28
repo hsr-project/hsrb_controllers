@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -25,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Test of Hrh opening width time tracking control action
+/// @brief Test of Hrh opening width time-following control action
 
 #include <gtest/gtest.h>
 
@@ -65,7 +65,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, ActionSucceeded) {
   auto future_goal_handle = action_client_->async_send_goal(goal);
   rclcpp::spin_until_future_complete(node_, future_goal_handle);
 
-  // The trajectory is determined at the first update, so move the position near the target after calling Update
+  // Since the trajectory is determined during the first update, move the position near the target position after calling Update
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
 
   std::vector<double> command_distances;
@@ -105,7 +105,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, GoalToleranceViolated) {
   auto future_goal_handle = action_client_->async_send_goal(goal);
   rclcpp::spin_until_future_complete(node_, future_goal_handle);
 
-  // The trajectory is determined at the first update, so move the position near the target after calling Update
+  // Since the trajectory is determined during the first update, move the position near the target position after calling Update
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
 
   hardware_->position->set_current(distance_calculator_->GetPositionFromDistance(0.107));
@@ -209,7 +209,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, DistanceGoalTolerance) {
   auto future_goal_handle = action_client_->async_send_goal(goal);
   rclcpp::spin_until_future_complete(node_, future_goal_handle);
 
-  // The trajectory is determined at the first update, so move the position after calling Update
+  // Since the trajectory is determined during the first update, move the position after calling Update
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
 
   hardware_->position->set_current(distance_calculator_->GetPositionFromDistance(0.105));
@@ -239,7 +239,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, PositionGoalTimeTolerance) {
   auto future_goal_handle = action_client_->async_send_goal(goal);
   rclcpp::spin_until_future_complete(node_, future_goal_handle);
 
-  // The trajectory is determined at the first update, so move the position after calling Update
+  // Since the trajectory is determined during the first update, move the position after calling Update
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
 
   hardware_->position->set_current(distance_calculator_->GetPositionFromDistance(0.105));
@@ -268,7 +268,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, DistanceMaxThreashold) {
   auto future_goal_handle = action_client_->async_send_goal(goal);
   rclcpp::spin_until_future_complete(node_, future_goal_handle);
 
-  // The trajectory is determined at the first update, so move the position near the target after calling Update
+  // Since the trajectory is determined during the first update, move the position near the target position after calling Update
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
 
   std::vector<double> command_positions;
@@ -300,7 +300,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, DistanceMinThreashold) {
   StartupController(node_options);
   ASSERT_TRUE(distance_calculator_->InitializeHandSizeData(node_));
 
-  // Assume to be at the minimum position
+  // Assume it is at the minimum position
   hardware_->position->set_current(0.5);
 
   ActionType::Goal goal;
@@ -309,7 +309,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, DistanceMinThreashold) {
   auto future_goal_handle = action_client_->async_send_goal(goal);
   rclcpp::spin_until_future_complete(node_, future_goal_handle);
 
-  // The trajectory is determined at the first update, so move the position near the target after calling Update
+  // Since the trajectory is determined during the first update, move the position near the target position after calling Update
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
 
   std::vector<double> command_positions;
@@ -458,7 +458,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, AcceptDistanceTrajectoryTopicThreasho
   node_options.append_parameter_override<double>("hand_motor_joint_min", 0.5);
   StartupController(node_options);
 
-  // Assume to be at the minimum position
+  // Assume it is at the minimum position
   hardware_->position->set_current(0.5);
 
   auto publisher = node_->create_publisher<trajectory_msgs::msg::JointTrajectory>("~/distance_trajectory",
@@ -541,7 +541,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, WithoutOpenLoopControl) {
     command_distances.push_back(distance_calculator_->GetDistanceFromPosition(hardware_->position->command()));
   }
 
-  // Monotonically increases from the current value, and then increases again from the current value
+  // The behavior is monotonically increasing from the current value, and then increases again from the current value midway
   uint32_t command_jumping = 0;
   double previous_command = 0.05;
   for (double command : command_distances) {
@@ -553,7 +553,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, WithoutOpenLoopControl) {
   }
   EXPECT_EQ(command_jumping, 1);
 
-  // Expected value is 0.01 for 0.1m/sec at 100Hz for 10 frames, provide a buffer as the loop may be unstable
+  // At 0.1m/sec for 10 frames at 100Hz, the expected value is 0.01; if the loop is unstable, allow some buffer
   EXPECT_NEAR((command_distances[15] - command_distances[5]), 0.01, 0.01);
   // The speed should be the same in the latter half
   EXPECT_NEAR((command_distances[50] - command_distances[40]), 0.01, 0.01);
@@ -589,7 +589,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, WithOpenLoopControl) {
     command_distances.push_back(distance_calculator_->GetDistanceFromPosition(hardware_->position->command()));
   }
 
-  // Monotonically increases from the initial value (0.0), but the speed changes at 25
+  // It continues to increase monotonically from the initial value (0.0), but the speed changes at the 25th point
   double previous_command = 0.0;
   for (double command : command_distances) {
     EXPECT_LE(command, (0.1 + kEpsilon));
@@ -597,12 +597,12 @@ TEST_F(FollowDistanceTrajectoryActionTest, WithOpenLoopControl) {
     previous_command = command;
   }
 
-  // Expected value is 0.02 for 0.2m/sec at 100Hz for 10 frames, provide a buffer as the loop may be unstable
+  // At 0.2m/sec for 10 frames at 100Hz, the expected value is 0.02; if the loop is unstable, allow some buffer
   EXPECT_NEAR(command_distances[15] - command_distances[5], 0.02, 0.01);
   // The speed should be halved in the latter half
   EXPECT_NEAR(command_distances[50] - command_distances[40], 0.01, 0.01);
 
-  // Create the client first to shorten test time and ensure wait_for completes quickly
+  // To shorten the test time, create the client first so that wait_for completes quickly
   auto apply_force_client = rclcpp_action::create_client<tmc_control_msgs::action::GripperApplyEffort>(
       node_, std::string(kControllerNodeName) + "/apply_force");
 
@@ -617,7 +617,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, WithOpenLoopControl) {
     command_distances.push_back(distance_calculator_->GetDistanceFromPosition(hardware_->position->command()));
   }
 
-  // Monotonically decreases from the last command value 0.1
+  // Monotonically decreasing from the last command value of 0.1
   previous_command = 0.1;
   for (double command : command_distances) {
     EXPECT_GE(command, (0.05 - kEpsilon));
@@ -625,7 +625,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, WithOpenLoopControl) {
     previous_command = command;
   }
 
-  // When switching to another control mode, the retained value is reset and connects from current
+  // When switching to another control mode, the retained value is reset and connects from the current value
   apply_force_client->wait_for_action_server();
   auto apply_force_goal = tmc_control_msgs::action::GripperApplyEffort::Goal();
   apply_force_goal.effort = 1.0;
@@ -642,7 +642,7 @@ TEST_F(FollowDistanceTrajectoryActionTest, WithOpenLoopControl) {
     command_distances.push_back(distance_calculator_->GetDistanceFromPosition(hardware_->position->command()));
   }
 
-  // Monotonically increases from the current value (0.0)
+  // Monotonically increasing from the current value (0.0)
   previous_command = 0.0;
   for (double command : command_distances) {
     EXPECT_LE(command, (0.1 + kEpsilon));

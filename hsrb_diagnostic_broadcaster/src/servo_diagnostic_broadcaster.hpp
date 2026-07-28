@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -40,7 +40,7 @@ DAMAGE.
 
 #include <controller_interface/controller_interface.hpp>
 #include <diagnostic_msgs/msg/diagnostic_array.hpp>
-#include <realtime_tools/realtime_publisher.h>
+#include <realtime_tools/realtime_publisher.hpp>
 
 #include <tmc_exxx_servo_motor_protocol/exxx_error_category.hpp>
 #include <tmc_exxx_servo_motor_protocol/exxx_warning_category.hpp>

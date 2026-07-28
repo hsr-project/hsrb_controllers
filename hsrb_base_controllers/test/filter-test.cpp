@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2018 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -77,7 +72,7 @@ TEST(FilterTest, Reset) {
   std::vector<double> a(aa, aa+3);
   std::vector<double> b(bb, bb+2);
   Filter<> filter(a, b);
-  // Initialize internal state to 1.0 (state where input and output are balanced at 1.0)
+  // Initialize the internal state to 1.0 (a state where input and output are balanced at 1.0)
   filter.reset(1.0);
   // y = 1.0*0.2 + 1.0*0.8 - 1.0*0.1 - 1.0*0.9
   EXPECT_NEAR(0.0, filter.update(1.0), kEpsilon);

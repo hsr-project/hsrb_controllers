@@ -1,3 +1,12 @@
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package hsrb_base_controllers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+3.0.0 (2026-06-29)
+-------------------
+* Migration to ROS2 jazzy
+* Contributors: Keisuke Takeshita, Shigeo Tsuduki, Yuki Hidaka, Masayuki Masuda
+
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package hsrb_base_controllers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

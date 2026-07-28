@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2022 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -31,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file hrh_gripper_controller-test.cpp
-/// @brief Test of HRH gripper controller, check if action interruption works
+/// @brief Test of HRH gripper controller, checking if action interruption works
 
 #include <gtest/gtest.h>
 #include <lifecycle_msgs/msg/state.hpp>
@@ -62,7 +57,6 @@ class GripperControllerTest : public ::testing::Test {
 
     // To eliminate the effect of update being called multiple times with WaitFor, set igain to zero
     controller_node_->declare_parameter<double>("force_control_igain", 0.0);
-    EXPECT_EQ(controller_->init(kControllerNodeName), controller_interface::return_type::OK);
 
     hardware_ = std::make_shared<HardwareStub>(kHandJointName);
     controller_->assign_interfaces(std::move(hardware_->command_interfaces), std::move(hardware_->state_interfaces));
@@ -98,6 +92,10 @@ class GripperControllerTest : public ::testing::Test {
     EXPECT_TRUE(set_distance_action_client_->wait_for_action_server());
     EXPECT_TRUE(follow_distance_trajectory_action_client_->wait_for_action_server());
     executor_.add_node(controller_->get_node()->get_node_base_interface());
+  }
+
+  void TearDown() override {
+    controller_->release_interfaces();
   }
 
  protected:
@@ -166,7 +164,7 @@ class GripperControllerTest : public ::testing::Test {
   }
 
   std::shared_ptr<rclcpp_action::ClientGoalHandle<FollowTrajectoryAction>> StartFollowTrajectoryAction() {
-    // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the goal position of the trajectory
+    // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the trajectory goal position
     hardware_->position->set_current(0.96);
 
     FollowTrajectoryAction::Goal follow_goal;
@@ -213,7 +211,7 @@ class GripperControllerTest : public ::testing::Test {
   }
 
   std::shared_ptr<rclcpp_action::ClientGoalHandle<SetDistanceAction>> StartSetDistanceAction() {
-    // Set speed to prevent action from ending
+    // Set the speed to prevent the action from ending
     hardware_->velocity->set_current(0.1);
 
     SetDistanceAction::Goal goal;
@@ -226,7 +224,7 @@ class GripperControllerTest : public ::testing::Test {
     // Wait for set_distance to start
     while (rclcpp::ok()) {
       SpinOnce(rate);
-      // Since the goal is about 0.33, the command value will be larger than the initial value
+      // Since the goal is around 0.33, the command value will be larger than the initial value
       if (hardware_->position->command() > 0.0) {
         break;
       }
@@ -239,7 +237,7 @@ class GripperControllerTest : public ::testing::Test {
   }
 
   std::shared_ptr<rclcpp_action::ClientGoalHandle<FollowTrajectoryAction>> StartFollowDistanceTrajectoryAction() {
-    // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the goal position of the trajectory (about 0.75)
+    // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the trajectory goal position (around 0.75)
     hardware_->position->set_current(0.73);
 
     FollowTrajectoryAction::Goal follow_goal;
@@ -264,7 +262,7 @@ class GripperControllerTest : public ::testing::Test {
   }
 
   void SendTrajectoryTopic() {
-    // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the goal position of the trajectory
+    // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the trajectory goal position
     hardware_->position->set_current(1.46);
 
     auto trajectory = MakeTrajectory();
@@ -283,7 +281,7 @@ class GripperControllerTest : public ::testing::Test {
   }
 
   void SendDistanceTopic() {
-    // Set speed to prevent processing from ending
+    // Set the speed to prevent the process from ending
     hardware_->velocity->set_current(0.1);
 
     std_msgs::msg::Float32 distance_topic;
@@ -294,7 +292,7 @@ class GripperControllerTest : public ::testing::Test {
     rclcpp::WallRate rate(100.0);
     while (rclcpp::ok()) {
       SpinOnce(rate);
-      // Since the goal is about 0.33, the command value will be larger than the initial value
+      // Since the goal is around 0.33, the command value will be larger than the initial value
       if (hardware_->position->command() > 0.0) {
         break;
       }
@@ -318,7 +316,7 @@ class GripperControllerTest : public ::testing::Test {
   }
 
   void PreemptWithApplyForceAction() {
-    // Set speed to allow action to end
+    // Set the speed to allow the action to end
     hardware_->velocity->set_current(0.0);
 
     ApplayEffortAction::Goal goal;
@@ -332,7 +330,7 @@ class GripperControllerTest : public ::testing::Test {
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2050));
 
-    // Set so that the target force and the low-passed force become the same value
+    // Set so that the target force and the low-pass filtered force are the same value
     hardware_->position->set_current(0.0);
     hardware_->spring_l_position->set_current(5.0);
     hardware_->spring_r_position->set_current(5.0);
@@ -349,7 +347,7 @@ class GripperControllerTest : public ::testing::Test {
   }
 
   void PreemptWithFollowTrajectoryAction() {
-    // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the goal position of the trajectory
+    // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the trajectory goal position
     hardware_->position->set_current(0.96);
 
     FollowTrajectoryAction::Goal follow_goal;
@@ -373,7 +371,7 @@ class GripperControllerTest : public ::testing::Test {
   }
 
   void PreemptWithGraspAction() {
-    // To ensure action success, align current force with target force
+    // To ensure the action succeeds, align the current force with the target force
     hardware_->effort->set_current(3.0);
 
     ApplayEffortAction::Goal grasp_goal;
@@ -410,7 +408,7 @@ class GripperControllerTest : public ::testing::Test {
     auto distance_calculator = std::make_shared<HrhGripperDistanceCalculator>();
     ASSERT_TRUE(distance_calculator->InitializeHandSizeData(controller_node_));
 
-    // Temporarily assume at target position to make the integral value of the difference zero
+    // Temporarily assume the target position to reset the integral of the difference to 0
     hardware_->position->set_current(distance_calculator->GetPositionFromDistance(0.05));
 
     SetDistanceAction::Goal goal;
@@ -443,7 +441,7 @@ class GripperControllerTest : public ::testing::Test {
     auto distance_calculator = std::make_shared<HrhGripperDistanceCalculator>();
     ASSERT_TRUE(distance_calculator->InitializeHandSizeData(controller_node_));
 
-    // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the goal position of the trajectory
+    // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the trajectory goal position
     hardware_->position->set_current(distance_calculator->GetPositionFromDistance(0.098));
 
     FollowTrajectoryAction::Goal follow_goal;
@@ -469,7 +467,7 @@ class GripperControllerTest : public ::testing::Test {
   }
 
   void PreemptWithTrajectoryTopic() {
-    // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the goal position of the trajectory
+    // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the trajectory goal position
     hardware_->position->set_current(1.46);
 
     auto trajectory = MakeTrajectory();
@@ -528,7 +526,7 @@ TEST_F(GripperControllerTest, ApplyForceAction) {
   auto distance_calculator = std::make_shared<HrhGripperDistanceCalculator>();
   ASSERT_TRUE(distance_calculator->InitializeHandSizeData(controller_node_));
 
-  // Check values of controller_state and fingertip_distance before receiving action
+  // Check the values of controller_state and fingertip_distance before receiving the action
   rclcpp::WallRate rate(100.0);
   while ((state_subscriber_->count() == 0) ||
          (distance_subscriber_->count() == 0)) {
@@ -561,12 +559,12 @@ TEST_F(GripperControllerTest, ApplyForceAction) {
 
   std::this_thread::sleep_for(std::chrono::milliseconds(2050));
 
-  // Set so that the target force and the low-passed force become the same value
+  // Set so that the target force and the low-pass filtered force are the same value
   hardware_->spring_l_position->set_current(5.0);
   hardware_->spring_r_position->set_current(5.0);
   SpinOnce(rate);
 
-  // Retrieve values of controller_state and fingertip_distance again
+  // Retrieve the values of controller_state and fingertip_distance again
   const uint32_t start_state_cnt = state_subscriber_->count();
   const uint32_t start_distance_cnt = distance_subscriber_->count();
   while ((state_subscriber_->count() <= start_state_cnt) ||
@@ -574,7 +572,7 @@ TEST_F(GripperControllerTest, ApplyForceAction) {
     rclcpp::spin_some(client_node_);
   }
 
-  // Should be able to subscribe 3 times with SpinOnce and WaitFor
+  // Should be able to subscribe three times with SpinOnce and WaitFor
   EXPECT_GE(state_subscriber_->count(), 3);
   EXPECT_GE(distance_subscriber_->count(), 3);
 
@@ -583,7 +581,7 @@ TEST_F(GripperControllerTest, ApplyForceAction) {
   reference.positions = { 0.4 * 1.0 };
   reference.effort = { 1.0 };
 
-  // Feedback effort is an internally calculated value
+  // Feedback effort is the internally calculated value
   trajectory_msgs::msg::JointTrajectoryPoint feedback;
   feedback.positions = { 0.0 };
   feedback.velocities = { 0.0 };
@@ -613,10 +611,10 @@ TEST_F(GripperControllerTest, FollowTrajectoryAction) {
   auto distance_calculator = std::make_shared<HrhGripperDistanceCalculator>();
   ASSERT_TRUE(distance_calculator->InitializeHandSizeData(controller_node_));
 
-  // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the goal position of the trajectory
+  // To prevent aborted due to excessive deviation during trajectory tracking, set a value close to the trajectory goal position
   hardware_->position->set_current(0.96);
 
-  // Check values of controller_state and fingertip_distance before receiving action
+  // Check the values of controller_state and fingertip_distance before receiving the action
   rclcpp::WallRate rate(100.0);
   while ((state_subscriber_->count() == 0) ||
          (distance_subscriber_->count() == 0)) {
@@ -655,7 +653,7 @@ TEST_F(GripperControllerTest, FollowTrajectoryAction) {
     command_positions.push_back(hardware_->position->command());
   }
 
-  // Retrieve values of controller_state and fingertip_distance again
+  // Retrieve the values of controller_state and fingertip_distance again
   while ((state_subscriber_->count() <= start_state_cnt) ||
          (distance_subscriber_->count() <= start_distance_cnt)) {
     rclcpp::spin_some(client_node_);
@@ -669,6 +667,7 @@ TEST_F(GripperControllerTest, FollowTrajectoryAction) {
   reference.positions = { 1.0 };
   reference.velocities = { 0.0 };
   reference.accelerations = { 0.0 };
+  reference.effort = { 0.0 };
 
   // Feedback is the current value
   trajectory_msgs::msg::JointTrajectoryPoint feedback;
@@ -680,6 +679,7 @@ TEST_F(GripperControllerTest, FollowTrajectoryAction) {
   trajectory_msgs::msg::JointTrajectoryPoint error;
   error.positions = { 0.04 };
   error.velocities = { 0.0 };
+  error.effort = { 0.0 };
 
   CheckStateMsg(state_subscriber_->last_msg(), reference, feedback, error, { kHandJointName });
 
@@ -705,11 +705,11 @@ TEST_F(GripperControllerTest, GraspAction) {
   auto distance_calculator = std::make_shared<HrhGripperDistanceCalculator>();
   ASSERT_TRUE(distance_calculator->InitializeHandSizeData(controller_node_));
 
-  // To ensure action success, set current force and target force to similar values
+  // To ensure the action succeeds, set the current force close to the target force
   hardware_->effort->set_current(2.5);
   hardware_->grasping_flag->set_current(false);
 
-  // Check values of controller_state and fingertip_distance before receiving action
+  // Check the values of controller_state and fingertip_distance before receiving the action
   rclcpp::WallRate rate(100.0);
   while ((state_subscriber_->count() == 0) ||
          (distance_subscriber_->count() == 0)) {
@@ -740,7 +740,7 @@ TEST_F(GripperControllerTest, GraspAction) {
 
   while (rclcpp::ok()) {
     SpinOnce(rate);
-    // Break at the start of gripping
+    // Break on gripping start
     if (hardware_->grasping_flag->bool_command()) {
       EXPECT_DOUBLE_EQ(hardware_->effort->command(), 3.0);
       break;
@@ -757,7 +757,7 @@ TEST_F(GripperControllerTest, GraspAction) {
   // Gripping complete
   hardware_->grasping_flag->set_current(false);
 
-  // Retrieve values of controller_state and fingertip_distance again
+  // Retrieve the values of controller_state and fingertip_distance again
   const uint32_t start_state_cnt = state_subscriber_->count();
   const uint32_t start_distance_cnt = distance_subscriber_->count();
   while ((state_subscriber_->count() <= start_state_cnt) ||
@@ -765,7 +765,7 @@ TEST_F(GripperControllerTest, GraspAction) {
     SpinOnce(rate);
   }
 
-  // Should be able to subscribe 3 times with SpinOnce and WaitFor
+  // Should be able to subscribe three times with SpinOnce and WaitFor
   EXPECT_GE(state_subscriber_->count(), 3);
   EXPECT_GE(distance_subscriber_->count(), 3);
 
@@ -804,11 +804,11 @@ TEST_F(GripperControllerTest, SetDistanceAction) {
   auto distance_calculator = std::make_shared<HrhGripperDistanceCalculator>();
   ASSERT_TRUE(distance_calculator->InitializeHandSizeData(controller_node_));
 
-  // Temporarily assume at target position to make the integral value of the difference zero
+  // Temporarily assume the target position to reset the integral of the difference to 0
   double start_position = distance_calculator->GetPositionFromDistance(0.05);
   hardware_->position->set_current(start_position);
 
-  // Check values of controller_state and fingertip_distance before receiving action
+  // Check the values of controller_state and fingertip_distance before receiving the action
   rclcpp::WallRate rate(100.0);
   while ((state_subscriber_->count() == 0) ||
          (distance_subscriber_->count() == 0)) {
@@ -856,7 +856,7 @@ TEST_F(GripperControllerTest, SetDistanceAction) {
 
   EXPECT_DOUBLE_EQ(hardware_->drive_mode->command(), tmc_exxx_servo_motor_protocol::kDriveModeHandPosition);
 
-  // Retrieve values of controller_state and fingertip_distance again
+  // Retrieve the values of controller_state and fingertip_distance again
   const uint32_t start_state_cnt = state_subscriber_->count();
   const uint32_t start_distance_cnt = distance_subscriber_->count();
   while ((state_subscriber_->count() <= start_state_cnt) ||
@@ -864,7 +864,7 @@ TEST_F(GripperControllerTest, SetDistanceAction) {
     rclcpp::spin_some(client_node_);
   }
 
-  // Should be able to subscribe 3 times with SpinOnce and WaitFor
+  // Should be able to subscribe three times with SpinOnce and WaitFor
   EXPECT_GE(state_subscriber_->count(), 3);
   EXPECT_GE(distance_subscriber_->count(), 3);
 
@@ -894,7 +894,7 @@ TEST_F(GripperControllerTest, FollowDistanceTrajectoryAction) {
   double start_position = distance_calculator->GetPositionFromDistance(0.05);
   hardware_->position->set_current(start_position);
 
-  // Check values of controller_state and fingertip_distance before receiving action
+  // Check the values of controller_state and fingertip_distance before receiving the action
   rclcpp::WallRate rate(100.0);
   while ((state_subscriber_->count() == 0) ||
          (distance_subscriber_->count() == 0)) {
@@ -935,7 +935,7 @@ TEST_F(GripperControllerTest, FollowDistanceTrajectoryAction) {
     command_distances.push_back(distance_calculator->GetDistanceFromPosition(hardware_->position->command()));
   }
 
-  // Retrieve values of controller_state and fingertip_distance again
+  // Retrieve the values of controller_state and fingertip_distance again
   while ((state_subscriber_->count() <= start_state_cnt) ||
          (distance_subscriber_->count() <= start_distance_cnt)) {
     rclcpp::spin_some(client_node_);

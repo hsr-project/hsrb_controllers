@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2014 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -30,7 +25,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// @brief Test class for the kinematic model of an omnidirectional cart
+/// @brief Test class for the kinematic model of an omnidirectional vehicle
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -53,7 +48,7 @@ const double kOdomAngularErrorLimit = 0.01;
 namespace hsrb_base_controllers {
 const OmniBaseSize kOmniBaseCorrectSize = { 1.0, 1.0, 1.0 };
 
-// Test of initial setting parameters
+// Test of initial setup parameters
 TEST(TwinCasterDriveTest, InvalidParameter) {
   // Initialization with invalid parameters
   // Can it correctly throw exceptions?
@@ -75,7 +70,7 @@ TEST(TwinCasterDriveTest, InvalidParameter) {
 TEST(TwinCasterDriveTest, CircularConversion) {
   TwinCasterDrive drive(kOmniBaseCorrectSize);
 
-  // Does the forward and inverse kinematic transformation return to the original value in any steering axis angle state?
+  // Check if forward and inverse kinematics return to the original value in a state with an arbitrary steering axis angle
   for (int i = -360; i < 360; ++i) {
     const double angle = M_PI * static_cast<double>(i) / 180.0;
     drive.Update(angle);
@@ -96,11 +91,11 @@ TEST(TwinCasterDriveTest, CircularConversion) {
 }
 
 
-// Test whether the conversion of speed 0 is performed correctly
+// Test whether the conversion at zero velocity is performed correctly
 TEST(TwinCasterDriveTest, ZeroVelocityConversion) {
   TwinCasterDrive drive(kOmniBaseCorrectSize);
 
-  // Joint angular velocity -> Cart speed
+  // Joint angular velocity -> Platform velocity
   Eigen::Vector3d joint_velocities(0.0, 0.0, 0.0);
   Eigen::Vector3d base_velocity =
       drive.ConvertForward(joint_velocities);
@@ -108,7 +103,7 @@ TEST(TwinCasterDriveTest, ZeroVelocityConversion) {
   EXPECT_NEAR(base_velocity(kIndexBaseY), 0.0, kLinearErrorLimit);
   EXPECT_NEAR(base_velocity(kIndexBaseTheta), 0.0, kLinearErrorLimit);
 
-  // Cart speed -> Joint angular velocity
+  // Platform velocity -> Joint angular velocity
   base_velocity << 0.0, 0.0, 0.0;
   joint_velocities = drive.ConvertInverse(base_velocity);
   EXPECT_NEAR(joint_velocities(kJointIDRightWheel), 0.0, kLinearErrorLimit);
@@ -117,12 +112,12 @@ TEST(TwinCasterDriveTest, ZeroVelocityConversion) {
 }
 
 
-// Test whether the conversion from joint angular velocity to cart speed is performed correctly
+// Test whether the conversion from joint angular velocity to platform velocity is performed correctly
 TEST(TwinCasterDriveTest, ForwardConversion) {
   TwinCasterDrive drive(kOmniBaseCorrectSize);
 
-  // Move the two wheel axes at the same speed to go straight
-  // Can it correctly calculate the cart speed at any speed and any steering axis angle?
+  // Move two wheel axes at the same speed to drive straight
+  // Can it correctly calculate the platform velocity at arbitrary speed and arbitrary steering axis angle?
   boost::mt19937 rng(static_cast<uint64_t>(time(0)));
   boost::uniform_real<> linear_dist(-100.0, 100.0);
   boost::variate_generator<
@@ -141,8 +136,8 @@ TEST(TwinCasterDriveTest, ForwardConversion) {
     EXPECT_NEAR(base_velocity(kIndexBaseTheta), 0.0, kAngularErrorLimit);
   }
 
-  // Output the speed to move only the steering axis
-  // Is the cart not moving in the translational direction and only the turning speed is output?
+  // Output the velocity to move only the steering axis
+  // Check if the platform does not move in the translational direction and only outputs rotational velocity
   boost::uniform_real<> angular_dist(-10.0, 10.0);
   boost::variate_generator<
       boost::mt19937, boost::uniform_real<> > angular_rand(rng, angular_dist);
@@ -160,12 +155,12 @@ TEST(TwinCasterDriveTest, ForwardConversion) {
 }
 
 
-// Test whether the conversion from cart speed to joint angular velocity is performed correctly
+// Test whether the conversion from platform velocity to joint angular velocity is performed correctly
 TEST(TwinCasterDriveTest, InverseConversion) {
   TwinCasterDrive drive(kOmniBaseCorrectSize);
 
-  // The steering axis moves the cart straight at any angle
-  // Are the wheel axes moving at the correct speed and at the same speed?
+  // Drive the platform straight with the steering axis at an arbitrary angle
+  // Check if the wheel axes are moving at the correct speed and at the same speed
   boost::mt19937 rng(static_cast<uint64_t>(time(0)));
   boost::uniform_real<> linear_dist(-100.0, 100.0);
   boost::variate_generator<
@@ -185,8 +180,8 @@ TEST(TwinCasterDriveTest, InverseConversion) {
     EXPECT_NEAR(joint_velocities(kJointIDSteer), 0.0, kJointErrorLimit);
   }
 
-  // The steering axis rotates the cart at any angle
-  // Is the steering axis moving at the correct speed?
+  // Rotate the platform with the steering axis at an arbitrary angle
+  // Check if the steering axis is moving at the correct speed
   boost::uniform_real<> angular_dist(-10.0, 10.0);
   boost::variate_generator<
       boost::mt19937, boost::uniform_real<> > angular_rand(rng, angular_dist);
@@ -204,7 +199,7 @@ TEST(TwinCasterDriveTest, InverseConversion) {
 }
 
 
-// Test whether the odometry of the cart is correctly calculated from the joint angular velocity
+// Test whether the odometry of the platform is correctly calculated from the joint angular velocity
 TEST(TwinCasterDriveTest, BaseOdometryUpdate) {
   boost::scoped_ptr<class TwinCasterDrive> drive(
       new TwinCasterDrive(kOmniBaseCorrectSize));
@@ -214,7 +209,7 @@ TEST(TwinCasterDriveTest, BaseOdometryUpdate) {
   boost::variate_generator<
       boost::mt19937, boost::uniform_real<> > rand_r(rng, joint_dist);
 
-  // Can odometry be correctly calculated even if starting from any joint angle?
+  // Can odometry be correctly calculated even when starting from arbitrary joint angles?
   for (int i = 0; i < 10; ++i) {
     drive.reset(new TwinCasterDrive(kOmniBaseCorrectSize));
 
@@ -224,7 +219,7 @@ TEST(TwinCasterDriveTest, BaseOdometryUpdate) {
     Eigen::Vector3d base_odometry =
         drive->UpdateOdometry(period, joint_positions, joint_velocities);
 
-    // Is the odometry zero at the first time?
+    // Is the odometry set to zero initially?
     EXPECT_NEAR(base_odometry(kIndexBaseX), 0.0, kLinearErrorLimit);
     EXPECT_NEAR(base_odometry(kIndexBaseY), 0.0, kLinearErrorLimit);
     EXPECT_NEAR(base_odometry(kIndexBaseTheta), 0.0, kAngularErrorLimit);
@@ -234,7 +229,7 @@ TEST(TwinCasterDriveTest, BaseOdometryUpdate) {
     double expected_distance =
         velocity * period * static_cast<double>(update_num);
 
-    // Specify joint angular velocity to perform translational movement -> on-the-spot rotation
+    // Specify joint angular velocities to perform translational movement -> in-place rotation
     // Is the odometry calculated at the correct position?
     Eigen::Vector3d base_velocity(velocity, 0.0 , 0.0);
     for (int j = 0; j < update_num; ++j) {

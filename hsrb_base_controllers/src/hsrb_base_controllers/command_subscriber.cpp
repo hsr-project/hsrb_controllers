@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2019 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -31,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file command_subscriber.cpp
-/// @brief Input command control class for omnidirectional cart control
+/// @brief Input command control class for omnidirectional vehicle control
 #include <hsrb_base_controllers/command_subscriber.hpp>
 
 #include <rclcpp_action/create_server.hpp>
@@ -39,7 +34,7 @@ DAMAGE.
 #include "utils.hpp"
 
 namespace {
-// Default value of action state update frequency [Hz]
+// Default value for action state update frequency [Hz]
 constexpr double kDefaultActionMonitorRate = 100.0;
 }
 
@@ -48,21 +43,21 @@ namespace hsrb_base_controllers {
 /// Input command class
 CommandSubscriber::CommandSubscriber(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
                                      IControllerCommandInterface* controller)
-    : node_(node), controller_(controller) {}
+    : node_(node), controller_(controller), target_control_(nullptr) {}
 
 
-/// Initialization of input speed command class
+/// Initialization of input velocity command class
 CommandVelocitySubscriber::CommandVelocitySubscriber(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
                                                      IControllerCommandInterface* controller)
     : CommandSubscriber(node, controller) {
-  // QoS of diff_drive_controller is SystemDefaults, steering_controllers is generally SensorDataQoS
-  // Adopt SensorDataQoS considering the importance of obtaining the latest values in a timely manner
+  // QoS for diff_drive_controller is SystemDefaults, steering_controllers generally use SensorDataQoS
+  // SensorDataQoS is adopted considering the importance of timely acquisition of the latest values
   velocity_subscriber_ = node->create_subscription<geometry_msgs::msg::Twist>(
       "~/cmd_vel", rclcpp::SensorDataQoS(),
       std::bind(&CommandVelocitySubscriber::CommandVelocityCallback, this, std::placeholders::_1));
 }
 
-/// Input speed command callback
+/// Input velocity command callback
 void CommandVelocitySubscriber::CommandVelocityCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
   if (controller_->IsAcceptable()) {
     controller_->UpdateVelocity(msg);
@@ -77,7 +72,7 @@ CommandTrajectorySubscriber::CommandTrajectorySubscriber(const rclcpp_lifecycle:
                                                          const std::string& topic_name,
                                                          IControllerCommandInterface* controller)
     : CommandSubscriber(node, controller) {
-  // Match the QoS of joint_trajectory_controller
+  // Align with the QoS of joint_trajectory_controller
   trajectory_subscriber_ = node->create_subscription<trajectory_msgs::msg::JointTrajectory>(
       topic_name, rclcpp::SensorDataQoS(),
       std::bind(&CommandTrajectorySubscriber::CommandTrajectoryCallback, this, std::placeholders::_1));
@@ -92,6 +87,7 @@ void CommandTrajectorySubscriber::CommandTrajectoryCallback(
   }
   if (controller_->ValidateTrajectory(*msg)) {
     controller_->PreemptActiveGoal();
+    controller_->ResetTrajectory(target_control_);
     controller_->UpdateTrajectory(msg);
   }
 }
@@ -175,7 +171,7 @@ rclcpp_action::GoalResponse TrajectoryActionServer::GoalCallback(
 rclcpp_action::CancelResponse TrajectoryActionServer::CancelCallback(const ServerGoalHandlePtr goal_handle) {
   const auto active_goal = *goal_handle_buffer_.readFromNonRT();
   if (active_goal && active_goal->gh_ == goal_handle) {
-    controller_->ResetTrajectory();
+    controller_->ResetTrajectory(nullptr);
 
     auto action_result = std::make_shared<control_msgs::action::FollowJointTrajectory::Result>();
     action_result->set__error_string("Current goal cancelled.");
@@ -187,6 +183,7 @@ rclcpp_action::CancelResponse TrajectoryActionServer::CancelCallback(const Serve
 
 void TrajectoryActionServer::FeedbackSetupCallback(ServerGoalHandlePtr goal_handle) {
   controller_->PreemptActiveGoal();
+  controller_->ResetTrajectory(target_control_);
 
   const auto msg = std::make_shared<trajectory_msgs::msg::JointTrajectory>(goal_handle->get_goal()->trajectory);
   controller_->UpdateTrajectory(msg);

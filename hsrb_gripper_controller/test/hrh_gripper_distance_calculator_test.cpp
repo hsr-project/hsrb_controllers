@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -78,28 +78,28 @@ void HrhGripperDistanceCalculatorTest::SetUp() {
   urdf_node_->declare_parameter("robot_description", ReadRobotDescriptionFromFile());
 }
 
-/// Check if initialization fails when the name of proximal_joint is not in the prepared interface list
+/// Check if initialization fails when the name of proximal_joint is not in the provided interface list
 TEST_F(HrhGripperDistanceCalculatorTest, BadProximalJointName) {
   node_->set_parameter({rclcpp::Parameter("proximal_joint", "bad_joint_name")});
   auto calculator = std::make_shared<HrhGripperDistanceCalculator>();
   EXPECT_FALSE(calculator->InitializeHandSizeData(node_));
 }
 
-/// Check if initialization fails when the name of distal_joint is not in the prepared interface list
+/// Check if initialization fails when the name of distal_joint is not in the provided interface list
 TEST_F(HrhGripperDistanceCalculatorTest, BadDistalJointName) {
   node_->set_parameter({rclcpp::Parameter("distal_joint", "bad_joint_name")});
   auto calculator = std::make_shared<HrhGripperDistanceCalculator>();
   EXPECT_FALSE(calculator->InitializeHandSizeData(node_));
 }
 
-/// Check if initialization fails when the name of mimic_distal_joint is not in the prepared interface list
+/// Check if initialization fails when the name of mimic_distal_joint is not in the provided interface list
 TEST_F(HrhGripperDistanceCalculatorTest, BadMimicDistalJointName) {
   node_->set_parameter({rclcpp::Parameter("mimic_distal_joint", "bad_joint_name")});
   auto calculator = std::make_shared<HrhGripperDistanceCalculator>();
   EXPECT_FALSE(calculator->InitializeHandSizeData(node_));
 }
 
-/// Check if initialization fails when the name of finger_tip_frame_joint is not in the prepared interface list
+/// Check if initialization fails when the name of finger_tip_frame_joint is not in the provided interface list
 TEST_F(HrhGripperDistanceCalculatorTest, BadFingerTipFrameJointName) {
   node_->set_parameter({rclcpp::Parameter("finger_tip_frame_joint", "bad_joint_name")});
   auto calculator = std::make_shared<HrhGripperDistanceCalculator>();
@@ -125,7 +125,7 @@ TEST_F(HrhGripperDistanceCalculatorTest, RobotDescriptionFromAnotherNode) {
   spin_thread.join();
 }
 
-/// The robot model does not exist in the specified node
+/// The specified node does not contain a robot model
 TEST_F(HrhGripperDistanceCalculatorTest, NoRobotDescriptionOnAnotherNode) {
   node_->undeclare_parameter("robot_description");
   node_->declare_parameter("model_node_name", "no_description_node");
@@ -138,7 +138,7 @@ TEST_F(HrhGripperDistanceCalculatorTest, NoRobotDescriptionOnAnotherNode) {
   spin_thread.join();
 }
 
-/// Attempt to reference another node, but a non-existent node is specified
+/// Attempt to reference another node, but the specified node does not exist
 TEST_F(HrhGripperDistanceCalculatorTest, NoRobotDescriptionNode) {
   node_->undeclare_parameter("robot_description");
   auto calculator = std::make_shared<HrhGripperDistanceCalculator>();
@@ -161,7 +161,7 @@ TEST_F(HrhGripperDistanceCalculatorTest, GetDistance2) {
   EXPECT_NEAR(calculator->GetDistanceFromPosition(1.0, 0.1, 0.1), 0.129157, kEpsilon);
 }
 
-/// Obtain position from opening width
+/// Obtain the position from the opening width
 TEST_F(HrhGripperDistanceCalculatorTest, GetPosition) {
   auto calculator = std::make_shared<HrhGripperDistanceCalculator>();
   EXPECT_TRUE(calculator->InitializeHandSizeData(node_));

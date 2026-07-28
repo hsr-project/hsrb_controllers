@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2022 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -36,6 +31,8 @@ DAMAGE.
 #include <string>
 #include <vector>
 
+#include <hardware_interface/loaned_command_interface.hpp>
+#include <hardware_interface/loaned_state_interface.hpp>
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 
 namespace hsrb_base_controllers {
@@ -43,9 +40,12 @@ namespace hsrb_base_controllers {
 class Handle {
  public:
   explicit Handle(const std::string& name)
-      : command_(0.0), current_pos_(0.0), current_vel_(0.0),
-        state_position_handle_(name, hardware_interface::HW_IF_POSITION, &current_pos_),
-        state_velocity_handle_(name, hardware_interface::HW_IF_VELOCITY, &current_vel_) {}
+     : command_(0.0), current_pos_(0.0), current_vel_(0.0) {
+    state_position_handle_ = std::make_shared<hardware_interface::StateInterface>(
+        name, hardware_interface::HW_IF_POSITION, &current_pos_);
+    state_velocity_handle_ = std::make_shared<hardware_interface::StateInterface>(
+        name, hardware_interface::HW_IF_VELOCITY, &current_vel_);
+  }
   virtual ~Handle() = default;
 
   hardware_interface::LoanedStateInterface GetPositionStateInterface() {
@@ -67,8 +67,8 @@ class Handle {
   double current_vel_;
 
  private:
-  hardware_interface::StateInterface state_position_handle_;
-  hardware_interface::StateInterface state_velocity_handle_;
+  hardware_interface::StateInterface::SharedPtr state_position_handle_;
+  hardware_interface::StateInterface::SharedPtr state_velocity_handle_;
 };
 
 class CommandPositionHandle : public Handle {
@@ -76,12 +76,14 @@ class CommandPositionHandle : public Handle {
   using Ptr = std::shared_ptr<CommandPositionHandle>;
 
   explicit CommandPositionHandle(const std::string& name, double update_frequency)
-      : Handle(name), command_position_handle_(name, hardware_interface::HW_IF_POSITION, &command_),
-        update_frequency_(update_frequency) {}
+      : Handle(name), update_frequency_(update_frequency) {
+    command_position_handle_ = std::make_shared<hardware_interface::CommandInterface>(
+        name, hardware_interface::HW_IF_POSITION, &command_);
+  }
   virtual ~CommandPositionHandle() = default;
 
   hardware_interface::LoanedCommandInterface GetCommandInterface() {
-    return hardware_interface::LoanedCommandInterface(command_position_handle_);
+    return hardware_interface::LoanedCommandInterface(command_position_handle_, nullptr);
   }
 
   void Update() override {
@@ -90,7 +92,7 @@ class CommandPositionHandle : public Handle {
   }
 
  private:
-  hardware_interface::CommandInterface command_position_handle_;
+  hardware_interface::CommandInterface::SharedPtr command_position_handle_;
   double update_frequency_;
 };
 
@@ -98,14 +100,16 @@ class CommandVelocityHandle : public Handle {
  public:
   using Ptr = std::shared_ptr<CommandVelocityHandle>;
 
-  CommandVelocityHandle(const std::string& name, double update_frequency)
-      : Handle(name), command_velocity_handle_(name, hardware_interface::HW_IF_VELOCITY, &command_),
-        update_frequency_(update_frequency) {}
+  explicit CommandVelocityHandle(const std::string& name, double update_frequency)
+      : Handle(name), update_frequency_(update_frequency) {
+    command_velocity_handle_ = std::make_shared<hardware_interface::CommandInterface>(
+        name, hardware_interface::HW_IF_VELOCITY, &command_);
+  }
 
   virtual ~CommandVelocityHandle() = default;
 
   hardware_interface::LoanedCommandInterface GetCommandInterface() {
-    return hardware_interface::LoanedCommandInterface(command_velocity_handle_);
+    return hardware_interface::LoanedCommandInterface(command_velocity_handle_, nullptr);
   }
 
   void Update() override {
@@ -114,7 +118,7 @@ class CommandVelocityHandle : public Handle {
   }
 
  private:
-  hardware_interface::CommandInterface command_velocity_handle_;
+  hardware_interface::CommandInterface::SharedPtr command_velocity_handle_;
   double update_frequency_;
 };
 

@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2019 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -31,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file omni_base_odometry-test.cpp
-/// @brief Test of omnidirectional cart odometry class
+/// @brief Test class for omnidirectional cart odometry
 
 #include <gtest/gtest.h>
 
@@ -82,7 +77,7 @@ void BaseOdometryTest::SetUp() {
   }
 }
 
-/// Update odometry with external odometry
+/// Update odometry using external odometry data
 TEST_F(BaseOdometryTest, UpdateBaseOdometry) {
   // Cart odometry
   Eigen::Vector3d odom = odom_->odometry();
@@ -90,7 +85,7 @@ TEST_F(BaseOdometryTest, UpdateBaseOdometry) {
   EXPECT_DOUBLE_EQ(odom(kIndexBaseY), 20.0);
   EXPECT_DOUBLE_EQ(odom(kIndexBaseTheta), 0.0);
 
-  // Cart speed
+  // Cart velocity
   Eigen::Vector3d vel = odom_->velocity();
   EXPECT_DOUBLE_EQ(vel(kIndexBaseX), 1.0);
   EXPECT_DOUBLE_EQ(vel(kIndexBaseY), 2.0);
@@ -108,7 +103,7 @@ TEST_F(BaseOdometryTest, InitOdometry) {
   EXPECT_DOUBLE_EQ(odom(kIndexBaseY), 0.0);
   EXPECT_DOUBLE_EQ(odom(kIndexBaseTheta), 0.0);
 
-  // Cart speed
+  // Cart velocity
   Eigen::Vector3d vel = odom_->velocity();
   EXPECT_DOUBLE_EQ(vel(kIndexBaseX), 1.0);
   EXPECT_DOUBLE_EQ(vel(kIndexBaseY), 2.0);
@@ -141,7 +136,7 @@ void WheelOdometryTest::SetUp() {
   odom_->UpdateOdometry(0.1, Eigen::Vector3d(1.0, 2.0, 3.0), Eigen::Vector3d(-1.0, -2.0, -3.0));
 }
 
-/// Able to update and retrieve odometry
+/// Update and retrieve odometry
 TEST_F(WheelOdometryTest, UpdateWheelOdometry) {
   // Cart odometry
   Eigen::Vector3d odom = odom_->odometry();
@@ -149,7 +144,7 @@ TEST_F(WheelOdometryTest, UpdateWheelOdometry) {
   EXPECT_NEAR(odom(kIndexBaseY), -0.00239658, kEpsilon);
   EXPECT_NEAR(odom(kIndexBaseTheta), 0.0150376, kEpsilon);
 
-  // Cart speed
+  // Cart velocity
   Eigen::Vector3d vel = odom_->velocity();
   EXPECT_NEAR(vel(kIndexBaseX), 0.0570652, kEpsilon);
   EXPECT_NEAR(vel(kIndexBaseY), -0.024843, kEpsilon);

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -51,21 +51,21 @@ class HrhGripperDistanceCalculator {
   /// Destructor
   virtual ~HrhGripperDistanceCalculator() = default;
 
-  /// Initialize the physical parameters of the hand
+  /// Initialize physical parameters of the hand
   bool InitializeHandSizeData(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node);
 
-  /// Calculation of fingertip distance
+  /// Calculate fingertip distance
   /// @return Fingertip distance [m]
   double GetDistanceFromPosition(double hand_motor_pos) const;
 
-  /// Calculation of fingertip distance
+  /// Calculate fingertip distance
   /// @return Fingertip distance [m]
   double GetDistanceFromPosition(
       double hand_motor_pos, double left_spring_proximal_joint_pos,
       double right_spring_proximal_joint_pos) const;
 
-  /// Calculation of joint angle from fingertip distance
-  /// @return Joint angle [rad]
+  /// Calculate joint angles from fingertip distance
+  /// @return Joint angles [rad]
   double GetPositionFromDistance(double distance) const;
 
  private:
@@ -95,7 +95,7 @@ class DistancePublisher {
   std::unique_ptr<RealtimePublisher> publisher_;
   rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr publisher_impl_;
 
-  // The last time the fingertip distance was issued
+  // Time when the last fingertip distance was issued
   rclcpp::Time last_distance_published_time_;
 
   /// Fingertip distance calculator
