@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2022 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -106,7 +101,7 @@ TEST_F(HrhGripperControllerApplyForceCalculatorTest, ApplyForceActionCalculatorS
   EXPECT_EQ(0.0, force_calculator->GetCurrentForce(0.5, -3.0, -5.0));
 }
 
-// In gripping force calculation, if hand_motor_pos is greater than the maximum value of the calibration, the force returns 0.0
+// In gripping force calculation, if hand_motor_pos exceeds the maximum value of the calibration, the force returns 0.0
 TEST_F(HrhGripperControllerApplyForceCalculatorTest, ApplyForceActionCalculatorSuccess2) {
   std::vector<std::vector<double>> force(2);
   force[0].push_back(0.0);
@@ -120,7 +115,7 @@ TEST_F(HrhGripperControllerApplyForceCalculatorTest, ApplyForceActionCalculatorS
   EXPECT_EQ(0.0, force_calculator->GetCurrentForce(1.5, -3.0, -5.0));
 }
 
-// In gripping force calculation, if hand_motor_pos is smaller than the minimum value of the calibration, the force returns the larger of the difference from calib_points[0][1] and 0.0
+// In gripping force calculation, if hand_motor_pos is less than the minimum value of the calibration, the force returns the larger of the difference from calib_points[0][1] and 0.0
 TEST_F(HrhGripperControllerApplyForceCalculatorTest, ApplyForceActionCalculatorSuccess3) {
   std::vector<std::vector<double>> force(2);
   force[0].push_back(0.0);
@@ -146,7 +141,7 @@ TEST_F(HrhGripperControllerApplyForceCalculatorTest, ApplyForceActionCalculatorF
   EXPECT_EQ(0.0, force_calculator->GetCurrentForce(0.5, -3.0, -5.0));
 }
 
-// In gripping force calculation, if the calibration points are not represented in 2D, the force is returned without considering the calibration values
+// In gripping force calculation, if the calibration points are not represented in two dimensions, the force is returned without considering the calibration values
 TEST_F(HrhGripperControllerApplyForceCalculatorTest, ApplyForceActionCalculatorFailure2) {
   std::vector<std::vector<double>> left_force(1);
   left_force[0].push_back(0.1);

@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2019 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -72,7 +67,7 @@ void DeclareJointParameters(const rclcpp_lifecycle::LifecycleNode::SharedPtr& no
 
 namespace hsrb_base_controllers {
 
-/// Can set joint names for command_interface
+/// Able to set joint names for command_interface
 TEST(OmniBaseJointControllerTest, CommandInterfaceName) {
   auto node = rclcpp_lifecycle::LifecycleNode::make_shared("test_node");
   node->configure();
@@ -89,15 +84,15 @@ TEST(OmniBaseJointControllerTest, CommandInterfaceName) {
 
     hardware_interface::CommandInterface r_wheel_handle(
         "controller", std::string("base_r_drive_wheel_joint/") + hardware_interface::HW_IF_VELOCITY, &dummy_value);
-    command_interfaces.emplace_back(hardware_interface::LoanedCommandInterface(r_wheel_handle));
+    command_interfaces.emplace_back(hardware_interface::LoanedCommandInterface(r_wheel_handle, nullptr));
 
     hardware_interface::CommandInterface l_wheel_handle(
         "base_l_drive_wheel_joint", hardware_interface::HW_IF_VELOCITY, &dummy_value);
-    command_interfaces.emplace_back(hardware_interface::LoanedCommandInterface(l_wheel_handle));
+    command_interfaces.emplace_back(hardware_interface::LoanedCommandInterface(l_wheel_handle, nullptr));
 
     hardware_interface::CommandInterface steer_handle(
         "controller", std::string("base_roll_joint/") + hardware_interface::HW_IF_POSITION, &dummy_value);
-    command_interfaces.emplace_back(hardware_interface::LoanedCommandInterface(steer_handle));
+    command_interfaces.emplace_back(hardware_interface::LoanedCommandInterface(steer_handle, nullptr));
 
     auto controller = std::make_shared<OmniBaseJointControllerBaseRollPosition>(node);
     EXPECT_TRUE(controller->Init());
@@ -109,15 +104,15 @@ TEST(OmniBaseJointControllerTest, CommandInterfaceName) {
 
     hardware_interface::CommandInterface r_wheel_handle(
         "controller", std::string("base_r_drive_wheel_joint/") + hardware_interface::HW_IF_VELOCITY, &dummy_value);
-    command_interfaces.emplace_back(hardware_interface::LoanedCommandInterface(r_wheel_handle));
+    command_interfaces.emplace_back(hardware_interface::LoanedCommandInterface(r_wheel_handle, nullptr));
 
     hardware_interface::CommandInterface l_wheel_handle(
         "base_l_drive_wheel_joint", hardware_interface::HW_IF_VELOCITY, &dummy_value);
-    command_interfaces.emplace_back(hardware_interface::LoanedCommandInterface(l_wheel_handle));
+    command_interfaces.emplace_back(hardware_interface::LoanedCommandInterface(l_wheel_handle, nullptr));
 
     hardware_interface::CommandInterface steer_handle(
         "controller", std::string("base_roll_joint/") + hardware_interface::HW_IF_VELOCITY, &dummy_value);
-    command_interfaces.emplace_back(hardware_interface::LoanedCommandInterface(steer_handle));
+    command_interfaces.emplace_back(hardware_interface::LoanedCommandInterface(steer_handle, nullptr));
 
     auto controller = std::make_shared<OmniBaseJointControllerBaseRollVelocity>(node);
     EXPECT_TRUE(controller->Init());
@@ -219,7 +214,7 @@ typedef ::testing::Types<
 
 TYPED_TEST_SUITE(OmniBaseJointControllerBaseTest, TestTypes);
 
-/// Initialization fails when the steering axis name is not in the prepared interface list
+/// Initialization fails when the steer axis name is not in the prepared interface list
 TYPED_TEST(OmniBaseJointControllerBaseTest, BadSteerJointName) {
   this->node_->set_parameter({rclcpp::Parameter("joints.steer", "bad_joint_name")});
   EXPECT_FALSE(this->controller_->Init());
@@ -237,7 +232,7 @@ TYPED_TEST(OmniBaseJointControllerBaseTest, BadRightWheelJointName) {
   EXPECT_FALSE(this->controller_->Init());
 }
 
-/// Initialization fails when the steering axis name is not specified
+/// Initialization fails when the steer axis name is not specified
 TYPED_TEST(OmniBaseJointControllerBaseTest, NoSteerJointName) {
   this->node_->undeclare_parameter("joints.steer");
   EXPECT_FALSE(this->controller_->Init());
@@ -272,7 +267,7 @@ TYPED_TEST(OmniBaseJointControllerBaseTest, RobotDescriptionFromAnotherNode) {
   spin_thread.join();
 }
 
-/// Robot model does not exist in the specified node
+/// The specified node does not contain a robot model
 TYPED_TEST(OmniBaseJointControllerBaseTest, NoRobotDescriptionOnAnotherNode) {
   this->node_->undeclare_parameter("robot_description");
   this->node_->declare_parameter("model_node_name", "no_description_node");
@@ -284,13 +279,13 @@ TYPED_TEST(OmniBaseJointControllerBaseTest, NoRobotDescriptionOnAnotherNode) {
   spin_thread.join();
 }
 
-/// Attempt to reference another node, but a non-existent node is specified
+/// Attempt to reference another node, but the specified node does not exist
 TYPED_TEST(OmniBaseJointControllerBaseTest, NoRobotDescriptionNode) {
   this->node_->undeclare_parameter("robot_description");
   EXPECT_FALSE(this->controller_->Init());
 }
 
-/// Can obtain the cart size
+/// Able to retrieve the cart size
 TYPED_TEST(OmniBaseJointControllerBaseTest, GetOmniBaseSize) {
   EXPECT_TRUE(this->controller_->Init());
 
@@ -300,25 +295,25 @@ TYPED_TEST(OmniBaseJointControllerBaseTest, GetOmniBaseSize) {
   EXPECT_EQ(0.04, omnibase_size.wheel_radius);
 }
 
-/// Can obtain l_wheel_joint_name
+/// Able to retrieve l_wheel_joint_name
 TYPED_TEST(OmniBaseJointControllerBaseTest, GetLeftWhellJointName) {
   EXPECT_TRUE(this->controller_->Init());
   EXPECT_EQ(this->controller_->l_wheel_joint_name(), "base_l_drive_wheel_joint");
 }
 
-/// Can obtain r_wheel_joint_name
+/// Able to retrieve r_wheel_joint_name
 TYPED_TEST(OmniBaseJointControllerBaseTest, GetRightWhellJointName) {
   EXPECT_TRUE(this->controller_->Init());
   EXPECT_EQ(this->controller_->r_wheel_joint_name(), "base_r_drive_wheel_joint");
 }
 
-/// Can obtain steer_joint_name
+/// Able to retrieve steer_joint_name
 TYPED_TEST(OmniBaseJointControllerBaseTest, GetSteerJointName) {
   EXPECT_TRUE(this->controller_->Init());
   EXPECT_EQ(this->controller_->steer_joint_name(), "base_roll_joint");
 }
 
-/// Can obtain the name of the interface for inputting joint states
+/// Able to retrieve the name of the interface for inputting joint states
 TYPED_TEST(OmniBaseJointControllerBaseTest, GetStateInterfaceNames) {
   EXPECT_TRUE(this->controller_->Init());
 
@@ -332,7 +327,7 @@ TYPED_TEST(OmniBaseJointControllerBaseTest, GetStateInterfaceNames) {
   EXPECT_NE(std::find(names.begin(), names.end(), "base_r_drive_wheel_joint/velocity"), names.end());
 }
 
-/// Fails to activate due to insufficient command_interface
+/// Activation fails due to insufficient command_interface
 TYPED_TEST(OmniBaseJointControllerBaseTest, CommandInterfaceShortage) {
   EXPECT_TRUE(this->controller_->Init());
 
@@ -340,7 +335,7 @@ TYPED_TEST(OmniBaseJointControllerBaseTest, CommandInterfaceShortage) {
   EXPECT_FALSE(this->controller_->Activate(this->hardware_.command_interfaces, this->hardware_.state_interfaces));
 }
 
-/// Fails to activate due to insufficient state_interface
+/// Activation fails due to insufficient state_interface
 TYPED_TEST(OmniBaseJointControllerBaseTest, StateInterfaceShortage) {
   EXPECT_TRUE(this->controller_->Init());
 
@@ -348,7 +343,7 @@ TYPED_TEST(OmniBaseJointControllerBaseTest, StateInterfaceShortage) {
   EXPECT_FALSE(this->controller_->Activate(this->hardware_.command_interfaces, this->hardware_.state_interfaces));
 }
 
-/// Can activate multiple times
+/// Able to activate multiple times
 TYPED_TEST(OmniBaseJointControllerBaseTest, ReActivate) {
   EXPECT_TRUE(this->controller_->Init());
   EXPECT_TRUE(this->controller_->Activate(this->hardware_.command_interfaces, this->hardware_.state_interfaces));
@@ -404,7 +399,26 @@ TYPED_TEST(OmniBaseJointControllerBaseTest, SetWheelVelocityLimit) {
                                 Eigen::Vector3d(8.5, 8.5, 0.0));
 }
 
-/// Can obtain axis position
+/// SetJointCommand processing is skipped when the period is zero
+TYPED_TEST(OmniBaseJointControllerBaseTest, SetJointCommandWithZeroPeriod) {
+  EXPECT_TRUE(this->controller_->Init());
+  EXPECT_TRUE(this->controller_->Activate(this->hardware_.command_interfaces, this->hardware_.state_interfaces));
+
+  this->controller_->SetJointCommand(0.1, Eigen::Vector3d(1.0, 0.0, 0.0));
+
+  EXPECT_NEAR(8.5, this->hardware_.r_wheel_handle->command(), kEpsilon);
+  EXPECT_NEAR(8.5, this->hardware_.l_wheel_handle->command(), kEpsilon);
+  EXPECT_NEAR(0.0, this->hardware_.steer_handle->command(), kEpsilon);
+
+  this->controller_->SetJointCommand(0.0, Eigen::Vector3d(0.0, 0.0, 0.0));
+
+  // Processing is skipped, so no changes occur
+  EXPECT_NEAR(8.5, this->hardware_.r_wheel_handle->command(), kEpsilon);
+  EXPECT_NEAR(8.5, this->hardware_.l_wheel_handle->command(), kEpsilon);
+  EXPECT_NEAR(0.0, this->hardware_.steer_handle->command(), kEpsilon);
+}
+
+/// Able to retrieve axis positions
 TYPED_TEST(OmniBaseJointControllerBaseTest, GetJointPositions) {
   EXPECT_TRUE(this->controller_->Init());
   EXPECT_TRUE(this->controller_->Activate(this->hardware_.command_interfaces, this->hardware_.state_interfaces));
@@ -420,7 +434,7 @@ TYPED_TEST(OmniBaseJointControllerBaseTest, GetJointPositions) {
   EXPECT_EQ(joint_positions(kJointIDSteer), 0.3);
 }
 
-/// Can obtain axis speed
+/// Able to retrieve axis speeds
 TYPED_TEST(OmniBaseJointControllerBaseTest, GetJointVelocities) {
   EXPECT_TRUE(this->controller_->Init());
   EXPECT_TRUE(this->controller_->Activate(this->hardware_.command_interfaces, this->hardware_.state_interfaces));
@@ -504,7 +518,7 @@ class OmniBaseJointControllerBaseRollPositionTest
                                                       CommandPositionHandle>> {
 };
 
-/// Can obtain the name of the interface for sending commands to joints
+/// Able to retrieve the name of the interface for sending commands to joints
 TEST_F(OmniBaseJointControllerBaseRollPositionTest, GetCommandInterfaceNames) {
   EXPECT_TRUE(controller_->Init());
 
@@ -515,14 +529,14 @@ TEST_F(OmniBaseJointControllerBaseRollPositionTest, GetCommandInterfaceNames) {
   EXPECT_NE(std::find(names.begin(), names.end(), "base_r_drive_wheel_joint/velocity"), names.end());
 }
 
-/// Can obtain command values
+/// Able to retrieve command values
 TEST_F(OmniBaseJointControllerBaseRollPositionTest, GetJointCommand) {
   TestCommandBaseVelocity(Eigen::Vector3d(0.02, 0.03, 0.01),
                           Eigen::Vector3d(1.40682, -0.406818, 0.262727),
                           Eigen::Vector3d(1.40682, -0.406818, 0.0262727));
 }
 
-/// Can reset the target position of the steering axis
+/// Able to reset the target position of the steering axis
 TEST_F(OmniBaseJointControllerBaseRollPositionTest, ResetDesiredSteerPosition) {
   hardware_.steer_handle->set_current_pos(1.0);
   EXPECT_TRUE(controller_->Init());
@@ -540,7 +554,7 @@ class OmniBaseJointControllerBaseRollVelocityTest
                                                       CommandVelocityHandle>> {
 };
 
-/// Can obtain the name of the interface for sending commands to joints
+/// Able to retrieve the name of the interface for sending commands to joints
 TEST_F(OmniBaseJointControllerBaseRollVelocityTest, GetCommandInterfaceNames) {
   EXPECT_TRUE(controller_->Init());
 
@@ -551,14 +565,14 @@ TEST_F(OmniBaseJointControllerBaseRollVelocityTest, GetCommandInterfaceNames) {
   EXPECT_NE(std::find(names.begin(), names.end(), "base_r_drive_wheel_joint/velocity"), names.end());
 }
 
-/// Can obtain command values
+/// Able to retrieve command values
 TEST_F(OmniBaseJointControllerBaseRollVelocityTest, GetJointCommand) {
   TestCommandBaseVelocity(Eigen::Vector3d(0.02, 0.03, 0.01),
                           Eigen::Vector3d(1.40682, -0.406818, 0.262727),
                           Eigen::Vector3d(1.40682, -0.406818, 0.262727));
 }
 
-/// Target position of the steering axis is always zero
+/// The target position of the steering axis is always zero
 TEST_F(OmniBaseJointControllerBaseRollVelocityTest, ResetDesiredSteerPosition) {
   hardware_.steer_handle->set_current_pos(1.0);
   EXPECT_TRUE(controller_->Init());

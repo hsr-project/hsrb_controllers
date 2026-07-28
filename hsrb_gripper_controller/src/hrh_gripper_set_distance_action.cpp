@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -39,7 +39,7 @@ namespace {
 
 // Default goal tolerance [m]
 const double kDefaultDistanceGoalTolerance = 0.005;
-// Default stall detection speed threshold [rad/s]
+// Default stall detection velocity threshold [rad/s]
 const double kDefaultStallVelocityThreshold = 0.05;
 // Default arrival judgment time [s]
 const double kDefaultDistanceControlStallTimeout = 1.3;
@@ -70,7 +70,7 @@ HrhGripperSetDistanceAction::HrhGripperSetDistanceAction(HrhGripperController* c
       integrated_distance_error_(0.0),
       last_error_(0.0) {}
 
-/// Periodic update processing
+/// Periodic update process
 void HrhGripperSetDistanceAction::Update(const rclcpp::Time& time) {
   if (!IsActive() && *(stop_flag_buffer_.readFromRT())) {
     return;
@@ -94,7 +94,7 @@ void HrhGripperSetDistanceAction::Update(const rclcpp::Time& time) {
   current_command_pos_ = GetCommandPos(current_distance);
   controller_->SetComandPosition(current_command_pos_);
 
-  // Success or failure judgment
+  // Success judgment
   CheckForSuccess(time, current_distance);
 }
 
@@ -145,7 +145,7 @@ bool HrhGripperSetDistanceAction::InitImpl(const rclcpp_lifecycle::LifecycleNode
   goal_buffer_.initRT(0.0);
   stop_flag_buffer_.initRT(true);
 
-  // Initialize class for opening width calculation
+  // Initialize class for calculating opening width
   distance_calculator_ = std::make_shared<HrhGripperDistanceCalculator>();
   if (!distance_calculator_->InitializeHandSizeData(node)) {
     return false;
@@ -165,13 +165,13 @@ bool HrhGripperSetDistanceAction::InitImpl(const rclcpp_lifecycle::LifecycleNode
   return true;
 }
 
-/// Update action target
+/// Update action goal
 void HrhGripperSetDistanceAction::UpdateActionImpl(
     const tmc_control_msgs::action::GripperSetDistance::Goal& goal) {
   SetCommandValue(goal.distance);
 }
 
-/// Calculate target position from error between command value and current value of opening width
+/// Calculate target position from error between opening width command value and current value
 double HrhGripperSetDistanceAction::GetCommandPos(const double current_distance) {
   // Calculate error
   const double ref_distance = *(goal_buffer_.readFromRT());

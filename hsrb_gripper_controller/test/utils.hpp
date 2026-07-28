@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2022 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -184,9 +179,6 @@ class TestableHrhGripperController : public HrhGripperController {
   explicit TestableHrhGripperController(rclcpp::NodeOptions node_options);
   ~TestableHrhGripperController() = default;
 
-  controller_interface::return_type init(const std::string& controller_name, const std::string& namespace_ = "",
-                                         const rclcpp::NodeOptions& node_options = rclcpp::NodeOptions()) override;
-
   void SkipConfigure();
 };
 
@@ -196,18 +188,8 @@ TestableHrhGripperController::TestableHrhGripperController(rclcpp::NodeOptions n
   node_options.append_parameter_override<std::string>("right_spring_joint", "hand_r_spring_proximal_joint");
   node_options.append_parameter_override<bool>("do_output_position_control", true);
   node_options.append_parameter_override<double>("position_control_current_min", -1.0);
-  EXPECT_EQ(ControllerInterface::init(kControllerNodeName, "", node_options),
+  EXPECT_EQ(ControllerInterface::init(kControllerNodeName, "", 0, "", node_options),
             controller_interface::return_type::OK);
-}
-
-controller_interface::return_type TestableHrhGripperController::init(const std::string& controller_name,
-                                                                     const std::string& namespace_,
-                                                                     const rclcpp::NodeOptions& node_options) {
-  if (InitImpl()) {
-    return controller_interface::return_type::OK;
-  } else {
-    return controller_interface::return_type::ERROR;
-  }
 }
 
 void TestableHrhGripperController::SkipConfigure() {
@@ -220,6 +202,7 @@ class GripperActionTestBase : public ::testing::Test {
   virtual ~GripperActionTestBase() = default;
 
   void SetUp() override;
+  void TearDown() override;
 
  protected:
   void StartupController();
@@ -238,6 +221,10 @@ template <typename RosActionType>
 void GripperActionTestBase<RosActionType>::SetUp() {
   hardware_ = std::make_shared<HardwareStub>(kHandJointName);
 }
+template <typename RosActionType>
+void GripperActionTestBase<RosActionType>::TearDown() {
+  controller_->release_interfaces();
+}
 
 template <typename RosActionType>
 void GripperActionTestBase<RosActionType>::StartupController() {
@@ -249,8 +236,6 @@ void GripperActionTestBase<RosActionType>::StartupController(rclcpp::NodeOptions
   node_options.append_parameter_override<std::string>("robot_description", ReadRobotDescriptionFromFile());
   controller_ = std::make_shared<TestableHrhGripperController>(node_options);
   node_ = controller_->get_node();
-
-  ASSERT_EQ(controller_->init(kControllerNodeName), controller_interface::return_type::OK);
 
   controller_->assign_interfaces(std::move(hardware_->command_interfaces), std::move(hardware_->state_interfaces));
   ASSERT_EQ(controller_->configure().id(), lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE);

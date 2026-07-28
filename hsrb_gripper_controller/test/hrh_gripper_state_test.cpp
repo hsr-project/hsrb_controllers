@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -105,7 +105,7 @@ TEST(StatePublisherTest, Publish) {
   CheckStateMsg(counter->last_msg(), check_reference, check_feedback, check_error, { "joint_1" });
 }
 
-// The publication cycle can be changed with state_publish_rate
+// Publication rate can be changed with state_publish_rate
 TEST(StatePublisherTest, PublishRate) {
   auto node = rclcpp_lifecycle::LifecycleNode::make_shared("test_node");
   node->configure();
@@ -131,7 +131,7 @@ TEST(StatePublisherTest, PublishRate) {
   EXPECT_EQ(counter->count(), 5);
 }
 
-// No error is calculated if the sizes of reference and feedback are different
+// Does not calculate error if reference and feedback sizes differ
 TEST(StatePublisherTest, ErrorSizeMismatch) {
   auto node = rclcpp_lifecycle::LifecycleNode::make_shared("test_node");
   node->configure();

@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2016 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -59,15 +54,15 @@ void HrhGripperGraspAction::Update(const rclcpp::Time& time) {
     std::lock_guard<std::mutex> guard(mutex_);
     bool start_grasping_flag;
     if (grasping_flag) {
-      // Grasp start flag already ON
+      // Gripping start flag already ON
       start_grasping_flag = false;
       is_sent_start_grasping_ = true;
     } else {
       if (is_sent_start_grasping_) {
-        // Grasp start flag sent and grasp completed
+        // Gripping start flag sent, and gripping completed
         start_grasping_flag = false;
       } else {
-        // Grasp start flag not yet sent
+        // Gripping start flag not yet sent
         start_grasping_flag = true;
       }
     }
@@ -101,7 +96,7 @@ bool HrhGripperGraspAction::InitImpl(const rclcpp_lifecycle::LifecycleNode::Shar
   return true;
 }
 
-/// Update action target
+/// Update the action target
 void HrhGripperGraspAction::UpdateActionImpl(const tmc_control_msgs::action::GripperApplyEffort::Goal& goal) {
   std::lock_guard<std::mutex> guard(mutex_);
   command_torque_ = goal.effort;
@@ -110,9 +105,9 @@ void HrhGripperGraspAction::UpdateActionImpl(const tmc_control_msgs::action::Gri
 
 void HrhGripperGraspAction::CheckForSuccess() {
   bool grasping_flag = controller_->GetCurrentGraspingFlag();
-  // Setting the grasp start flag on the control table initiates grasp,
-  // Specification where flag is reset upon stall (command and status confirmation fields are identical)
-  // If the grasp start flag is sent and the current grasp flag is reset, the grasp is complete.
+  // Setting the gripping start flag on the control table initiates gripping,
+  // The flag is reset upon stalling (command and status confirmation fields are the same)
+  // If the gripping start flag has been sent and the current gripping flag is reset, gripping is complete.
   bool has_completed;
   {
     std::lock_guard<std::mutex> guard(mutex_);
@@ -123,7 +118,7 @@ void HrhGripperGraspAction::CheckForSuccess() {
     result->stalled = true;
     result->effort = controller_->GetCurrentTorque();
 
-    // Compare command value and current value when stalled and equilibrium is reached
+    // Compare the command value and the current value when stalled and in equilibrium
     bool is_succeeded;
     {
       std::lock_guard<std::mutex> guard(mutex_);

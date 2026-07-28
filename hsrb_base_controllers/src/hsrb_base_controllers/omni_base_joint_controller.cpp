@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2019 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -46,20 +41,20 @@ DAMAGE.
 
 namespace {
 
-// Swivel Axis Command Speed Limit [rad/s]
+// Rotational axis command speed limit [rad/s]
 constexpr double kYawVelocityLimit = 1.8;
-// Wheel Command Speed Limit [rad/s]
+// Wheel command speed limit [rad/s]
 constexpr double kWheelVelocityLimit = 8.5;
-/// Encoder Speed Threshold
-/// It was discovered that very rarely (once every few hours or so), the encoder values would spike (around 4000 rad/sec), so a threshold was set to filter them out
-/// Since abnormal values are around 4000, setting the default value to 1000 will filter out the abnormal values
+/// Encoder speed threshold
+/// A threshold to filter out rare cases (e.g., once every few hours) where encoder values spike (around 4000 rad/sec).
+/// Since abnormal values are around 4000, setting the default value to 1000 will filter out such anomalies.
 /// TODO(kazuhito_tanaka): 本質対策がされたら本設定を削除
-// Swivel Axis Encoder Speed Threshold [rad/s]
+// Rotational axis encoder speed threshold [rad/s]
 constexpr double kYawActualVelocityThreshold = 1000.0;
-// Wheel Encoder Speed Threshold [rad/s]
+// Wheel encoder speed threshold [rad/s]
 constexpr double kWheelActualVelocityThreshold = 1000.0;
 
-// Retrieve joint names, error if unable to retrieve
+// Retrieve joint names, return an error if not found
 bool GetJointName(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
     const std::string& parameter_name, std::string& joint_name_out) {
@@ -98,7 +93,7 @@ bool InitializeOmniBaseSize(const rclcpp::Logger& logger,
   return true;
 }
 
-// Determine the Min/Max feasible speed considering acceleration
+// Calculate the achievable Min/Max speed considering acceleration
 void CalculateVelocityMinMax(const double prev,
                              const double vel_limit,
                              const double acc_limit,
@@ -109,7 +104,7 @@ void CalculateVelocityMinMax(const double prev,
   vel_min = std::max(prev - acc_limit * period, -vel_limit);
 }
 
-// Determine the Min/Max feasible speed considering acceleration
+// Calculate the achievable Min/Max speed considering acceleration
 void CalculateVelocityMinMax(const Eigen::Vector3d& prev,
                              const Eigen::Vector3d& vel_limit,
                              const Eigen::Vector3d& acc_limit,
@@ -121,8 +116,8 @@ void CalculateVelocityMinMax(const Eigen::Vector3d& prev,
   }
 }
 
-// Check the validity of joint speed
-// Tolerance is the allowable error to not filter out the maximum speed
+// Check the validity of joint speeds
+// Tolerance is an allowable error to avoid rejecting maximum speed
 bool IsJointCommandValid(const Eigen::Vector3d& joint_velocities,
                          const Eigen::Vector3d& joint_velocities_min,
                          const Eigen::Vector3d& joint_velocities_max,
@@ -136,7 +131,7 @@ bool IsJointCommandValid(const Eigen::Vector3d& joint_velocities,
   return true;
 }
 
-// Calculate the distance to the range of joint speed
+// Calculate the distance from the range of joint speeds
 double CalculateJointCommandDistance(const Eigen::Vector3d& joint_velocities,
                                      const Eigen::Vector3d& joint_velocities_min,
                                      const Eigen::Vector3d& joint_velocities_max,
@@ -150,6 +145,15 @@ double CalculateJointCommandDistance(const Eigen::Vector3d& joint_velocities,
     }
   }
   return distance;
+}
+
+double GetStateInterfaceValue(const std::reference_wrapper<hardware_interface::LoanedStateInterface> interface) {
+  std::optional<double> opt_value = interface.get().get_optional();
+  if (opt_value.has_value()) {
+    return opt_value.value();
+  } else {
+    return std::numeric_limits<double>::quiet_NaN();
+  }
 }
 
 }  // namespace
@@ -198,7 +202,7 @@ bool OmniBaseJointControllerBase::Init() {
   acceleration_limit_[kJointIDLeftWheel] = wheel_acceleration_limit;
   acceleration_limit_[kJointIDRightWheel] = wheel_acceleration_limit;
 
-  /// It was discovered that very rarely (once every few hours or so), the encoder values would spike (around 4000 rad/sec), so a threshold was set to filter them out
+  /// A threshold to filter out rare cases (e.g., once every few hours) where encoder values spike (around 4000 rad/sec).
   /// TODO(kazuhito_tanaka): 本質対策がされたら本設定を削除
   actual_velocity_threshold_[kJointIDSteer] = GetPositiveParameter(
       node_, "yaw_actual_velocity_threshold", kYawActualVelocityThreshold);
@@ -233,7 +237,7 @@ std::vector<std::string> OmniBaseJointControllerBase::state_interface_names() co
   return names;
 }
 
-/// Interface Settings
+/// Interface settings
 bool OmniBaseJointControllerBase::Activate(std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces,
                                            std::vector<hardware_interface::LoanedStateInterface>& state_interfaces) {
   command_interfaces_.clear();
@@ -271,18 +275,18 @@ bool OmniBaseJointControllerBase::Activate(std::vector<hardware_interface::Loane
   return true;
 }
 
-/// Get Axis Position
+/// Get axis position
 bool OmniBaseJointControllerBase::GetJointPositions(Eigen::Vector3d& positions_out) const {
   for (auto i = 0; i < kNumOmniBaseJointIDs; ++i) {
-    positions_out(i) = current_position_interfaces_[i].get().get_value();
+    positions_out(i) = GetStateInterfaceValue(current_position_interfaces_[i]);
   }
   return true;
 }
 
-/// Get Axis Speed
+/// Get axis speed
 bool OmniBaseJointControllerBase::GetJointVelocities(Eigen::Vector3d& velocities_out) const {
   for (auto i = 0; i < kNumOmniBaseJointIDs; ++i) {
-    velocities_out(i) = current_velocity_interfaces_[i].get().get_value();
+    velocities_out(i) = GetStateInterfaceValue(current_velocity_interfaces_[i]);
     if (fabs(velocities_out(i)) > actual_velocity_threshold_[i]) {
       RCLCPP_ERROR(
           node_->get_logger(),
@@ -294,19 +298,25 @@ bool OmniBaseJointControllerBase::GetJointVelocities(Eigen::Vector3d& velocities
   return true;
 }
 
-/// Calculate Command Value
+/// Calculate command values
 void OmniBaseJointControllerBase::SetJointCommand(const double period, const Eigen::Vector3d output_velocity) {
-  // Convert command speed in robot upper body coordinate system to joint command speed
-  twin_drive_->Update(current_position_interfaces_[kJointIDSteer].get().get_value());
+  // In Gazebo, there are cases where the period is zero, and if it's zero, acceleration limit calculations always fail
+  // Therefore, skip processing when it's zero
+  if (period <= std::numeric_limits<double>::epsilon()) {
+    return;
+  }
+
+  // Convert command speed in robot body coordinate system to joint command speed
+  twin_drive_->Update(GetStateInterfaceValue(current_position_interfaces_[kJointIDSteer]));
   auto joint_output_velocity = twin_drive_->ConvertInverse(output_velocity);
 
   // Retain the value before applying constraints as desired
   joint_desired_velocity_ = joint_output_velocity;
 
   // joint_output_velocity_ and base_output_velocity_ are used in calculations as the previous command values
-  // Do not update except at the end
+  // Do not update except at the last step
 
-  // Apply limit to swivel axis speed
+  // Apply limits to the rotational axis speed
   for (auto i = 0; i < kNumOmniBaseJointIDs; ++i) {
     if (fabs(joint_output_velocity(i)) > velocity_limit_(i)) {
       const double ratio = 1.0 / (fabs(joint_output_velocity(i)) / velocity_limit_(i));
@@ -314,70 +324,70 @@ void OmniBaseJointControllerBase::SetJointCommand(const double period, const Eig
     }
   }
 
-  // Apply filter to speed command value
+  // Apply a filter to the speed command value
   for (auto i = 0; i < kNumOmniBaseJointIDs; ++i) {
     joint_output_velocity(i) = velocity_filters_[i].update(joint_output_velocity(i));
   }
 
-  // Determine joint speed that satisfies acceleration limit
+  // Determine joint speeds that satisfy the acceleration limit
   const auto joint_output_velocity_opt = ApplyAccelerationLimits(joint_output_velocity, joint_output_velocity_, period);
   if (joint_output_velocity_opt) {
     joint_output_velocity = joint_output_velocity_opt.value();
   } else {
-    // If not determined, give up and use the value with only speed limit and filter applied
+    // If not achievable, give up and use the value with only speed limits and filters applied
     RCLCPP_WARN(node_->get_logger(), "Failed to apply acceleration limits");
   }
 
-  // Update command position of swivel axis
+  // Update the command position of the rotational axis
   joint_command_position_(kJointIDSteer) += joint_output_velocity(kJointIDSteer) * period;
 
-  // Set command value to command interface
+  // Set the command value to the command interface
   joint_output_velocity_ = joint_output_velocity;
   SetCommandToCommandInterface(period);
 
-  // Retain output result
+  // Retain the output result
   base_output_velocity_ = twin_drive_->ConvertForward(joint_output_velocity_);
 }
 
-/// Calculate Command Value
+/// Calculate command values
 void OmniBaseJointControllerBase::SetJointCommand(const double period, const State& desired_state) {
-  // Apply limit
+  // Apply limits
   for (auto i = 0; i < kNumOmniBaseJointIDs; ++i) {
     joint_output_velocity_[i] = std::clamp(desired_state.velocities[i], -velocity_limit_[i], velocity_limit_[i]);
   }
   joint_desired_velocity_ = joint_output_velocity_;
 
-  // Apply limit to swivel axis speed
+  // Apply limits to the rotational axis speed
   if (fabs(desired_state.velocities[kJointIDSteer]) > velocity_limit_[kJointIDSteer]) {
     joint_command_position_(kJointIDSteer) += joint_output_velocity_(kJointIDSteer) * period;
   } else {
     joint_command_position_(kJointIDSteer) = desired_state.positions[kJointIDSteer];
   }
 
-  // Set command value to command interface
+  // Set the command value to the command interface
   SetCommandToCommandInterface(period);
 }
 
-// Determine joint speed that satisfies acceleration limit
+// Determine joint speeds that satisfy the acceleration limit
 std::optional<Eigen::Vector3d> OmniBaseJointControllerBase::ApplyAccelerationLimits(
     const Eigen::Vector3d& joint_velocity_current,
     const Eigen::Vector3d& joint_velocity_prev,
     const double period) {
-  // Determine feasible speed for each axis from acceleration
+  // Calculate achievable speeds for each axis based on acceleration
   Eigen::Vector3d joint_velocity_min;
   Eigen::Vector3d joint_velocity_max;
   CalculateVelocityMinMax(joint_velocity_prev, velocity_limit_, acceleration_limit_, period,
                           joint_velocity_min, joint_velocity_max);
 
-  // Exit immediately if feasible
+  // Exit immediately if achievable
   if (IsJointCommandValid(joint_velocity_current, joint_velocity_min, joint_velocity_max)) {
     return joint_velocity_current;
   }
 
-  // Treat the speed with limit applied as the desired for the cart
+  // Treat the speed with applied limits as the desired speed for the cart
   const auto base_desired_velocity = twin_drive_->ConvertForward(joint_velocity_current);
 
-  // Determine optimal solution by ternary search from linear interpolation between current cart speed and target cart speed
+  // Use ternary search to find the optimal solution from linear interpolation between current and target cart speeds
   // Prefer the right side as it's better to be as close to the target speed as possible
   auto interpolation_cost_func = [&](const double ratio) {
     const auto base_command_candidate = base_desired_velocity * ratio + base_output_velocity_ * (1.0 - ratio);
@@ -393,7 +403,7 @@ std::optional<Eigen::Vector3d> OmniBaseJointControllerBase::ApplyAccelerationLim
         base_desired_velocity * interpolation_ratio + base_output_velocity_ * (1.0 - interpolation_ratio));
   }
 
-  // If no linear interpolation, decelerate while maintaining the ratio of current cart speed
+  // If no linear interpolation, decelerate while maintaining the ratio of current cart speeds
   // Experimentally, it's better to decelerate as much as possible, so prefer the left side
   auto braking_base_cost_func = [&](const double ratio) {
     const auto base_command_candidate = base_output_velocity_ * ratio;
@@ -407,13 +417,13 @@ std::optional<Eigen::Vector3d> OmniBaseJointControllerBase::ApplyAccelerationLim
     return twin_drive_->ConvertInverse(base_output_velocity_ * braking_base_ratio);
   }
 
-  // Consider maintaining current speed, but it may be impossible as the cart's state changes
+  // Consider maintaining the current speed, but it might be impossible as the cart's state changes
   if (IsJointCommandValid(twin_drive_->ConvertInverse(base_output_velocity_), joint_velocity_min, joint_velocity_max)) {
     return twin_drive_->ConvertInverse(base_output_velocity_);
   }
 
-  // If still no solution, decelerate while maintaining the ratio of wheel speed
-  // At this point, the cart moves in an unexpected direction, so it might be okay to just let it pass
+  // If there's still no solution, decelerate while maintaining the ratio of wheel speeds
+  // At this point, the cart may move in an unexpected direction, so it might be better to just let it pass
   // Binary search is sufficient, but reuse the ternary search code
   auto braking_joint_cost_func = [&](const double ratio) {
     const auto joint_command_candidate = joint_velocity_prev * ratio;
@@ -426,7 +436,7 @@ std::optional<Eigen::Vector3d> OmniBaseJointControllerBase::ApplyAccelerationLim
     return joint_velocity_prev * braking_joint_ratio;
   }
 
-  // Nothing can be done if it comes to this
+  // Nothing can be done if it reaches here
   return std::nullopt;
 }
 
@@ -445,12 +455,15 @@ std::vector<std::string> OmniBaseJointControllerBaseRollPosition::command_interf
 }
 
 void OmniBaseJointControllerBaseRollPosition::SetCommandToCommandInterface(double period) {
-  // Update and set command position of swivel axis
-  command_interfaces_[kJointIDSteer].get().set_value(joint_command_position_(kJointIDSteer));
+  // Update and set the command position of the rotational axis
+  static_cast<void>(
+      command_interfaces_[kJointIDSteer].get().set_value(joint_command_position_(kJointIDSteer)));
 
-  // Set command speed of wheels
-  command_interfaces_[kJointIDRightWheel].get().set_value(joint_output_velocity_(kJointIDRightWheel));
-  command_interfaces_[kJointIDLeftWheel].get().set_value(joint_output_velocity_(kJointIDLeftWheel));
+  // Set the command speed for the wheels
+  static_cast<void>(
+      command_interfaces_[kJointIDRightWheel].get().set_value(joint_output_velocity_(kJointIDRightWheel)));
+  static_cast<void>(
+      command_interfaces_[kJointIDLeftWheel].get().set_value(joint_output_velocity_(kJointIDLeftWheel)));
 }
 
 
@@ -463,9 +476,12 @@ std::vector<std::string> OmniBaseJointControllerBaseRollVelocity::command_interf
 }
 
 void OmniBaseJointControllerBaseRollVelocity::SetCommandToCommandInterface(double period) {
-  command_interfaces_[kJointIDSteer].get().set_value(joint_output_velocity_(kJointIDSteer));
-  command_interfaces_[kJointIDRightWheel].get().set_value(joint_output_velocity_(kJointIDRightWheel));
-  command_interfaces_[kJointIDLeftWheel].get().set_value(joint_output_velocity_(kJointIDLeftWheel));
+  static_cast<void>(
+      command_interfaces_[kJointIDSteer].get().set_value(joint_output_velocity_(kJointIDSteer)));
+  static_cast<void>(
+      command_interfaces_[kJointIDRightWheel].get().set_value(joint_output_velocity_(kJointIDRightWheel)));
+  static_cast<void>(
+      command_interfaces_[kJointIDLeftWheel].get().set_value(joint_output_velocity_(kJointIDLeftWheel)));
 }
 
 }  // namespace hsrb_base_controllers

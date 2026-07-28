@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2015 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -67,7 +62,7 @@ enum BaseCoordinateID {
   kNumBaseCoordinateIDs
 };
 
-/// Dimension information of the cart
+/// Dimensional information of the cart
 struct OmniBaseSize {
   // Tread[m]
   double tread;
@@ -101,20 +96,20 @@ class TwinCasterDrive : private boost::noncopyable {
     caster_odometry_ << 0.0, 0.0, 0.0;
   }
 
-  /// Calculate the speed of the platform achieved from the given speed of each joint
-  /// @param joint_velocity [in] Joint angular velocity (in order of right wheel, left wheel, pivot axis)
+  /// Calculate the velocity of the platform realized from the given joint velocities
+  /// @param joint_velocity [in] Joint angular velocity (in the order of right wheel, left wheel, and turning axis)
   Eigen::Vector3d ConvertForward(const Eigen::Vector3d& joint_velocity) const {
     return jacobian_ * joint_velocity;
   }
 
-  /// Calculate the necessary speed of each joint from the given speed of the platform.
-  /// @param base_velocity [in] Platform speed (forward/backward, left/right, rotation in platform coordinate system)
+  /// Calculate the required joint velocities from the given platform velocity.
+  /// @param base_velocity [in] Platform velocity (forward/backward, left/right, rotation in the platform coordinate system)
   Eigen::Vector3d ConvertInverse(const Eigen::Vector3d& base_velocity) const {
     return inverse_jacobian_ * base_velocity;
   }
 
   /// Update the offset angle between the platform and caster cart.
-  /// @param caster_position [in] Offset angle between the platform and caster cart (rad)
+  /// @param caster_position [in] Offset angle (rad) between the platform and caster cart
   void Update(double caster_position) {
     const double r = wheel_radius_;
     const double s = caster_offset_;
@@ -127,14 +122,14 @@ class TwinCasterDrive : private boost::noncopyable {
     const double j22 = r * sin_v * 0.5 - r * s * cos_v / w;
     const double j31 = r / w;
     const double j32 = -r / w;
-    // It seems that the sign of the second term on the right side of the angular velocity equation in formula (19) of the reference paper is reversed.
+    // It seems that the sign of the second term on the right-hand side of equation (19) regarding angular velocity in the reference paper is reversed.
     jacobian_ << j11, j12, 0,
                  j21, j22, 0,
                  j31, j32, -1.0;
     inverse_jacobian_ = jacobian_.inverse();
   }
 
-  /// Update platform odometry.
+  /// Update the platform odometry.
   Eigen::Vector3d UpdateOdometry(double period,
                                  const Eigen::Vector3d& joint_position,
                                  const Eigen::Vector3d& joint_velocity) {
@@ -154,7 +149,7 @@ class TwinCasterDrive : private boost::noncopyable {
     const double v = (vr + vl) * 0.5;
     const double w = (vr - vl) / tread_;
 
-    // Update cart odometry
+    // Update the cart odometry
     caster_odometry_[kIndexBaseTheta] += w * dt;
     const double caster_odom_theta = caster_odometry_[kIndexBaseTheta];
     const double delta_x = v * std::cos(caster_odom_theta) * dt;
@@ -162,7 +157,7 @@ class TwinCasterDrive : private boost::noncopyable {
     caster_odometry_[kIndexBaseX] += delta_x;
     caster_odometry_[kIndexBaseY] += delta_y;
 
-    // Update platform odometry from cart odometry and steering axis angle
+    // Update the platform odometry from the cart odometry and the steering axis angle
     const double odom_x = caster_odometry_[kIndexBaseX] +
                           caster_offset_ * std::cos(caster_odom_theta);
     const double odom_y = caster_odometry_[kIndexBaseY] +

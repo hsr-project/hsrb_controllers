@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2016 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -56,18 +51,18 @@ class HrhGripperGraspAction : public HrhGripperAction<tmc_control_msgs::action::
  protected:
   /// Implementation of action initialization
   bool InitImpl(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) override;
-  /// Update the action target
+  /// Update the action's target
   void UpdateActionImpl(const tmc_control_msgs::action::GripperApplyEffort::Goal& goal) override;
 
-  /// Command value and state
+  /// Command values and state
   std::mutex mutex_;
   double command_torque_;
   bool is_sent_start_grasping_;
 
-  /// Action success/failure judgment
+  /// Action success determination
   void CheckForSuccess();
 
-  /// Allowable error of goal torque [Nm]
+  /// Allowable error for goal torque [Nm]
   double goal_tolerance_;
 };
 

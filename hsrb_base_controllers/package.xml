@@ -1,6 +1,6 @@
 <package format="3">
   <name>hsrb_base_controllers</name>
-  <version>2.4.0</version>
+  <version>3.0.0</version>
   <description>Ros controller plugins for HSR-B's base control.</description>
 
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
@@ -24,6 +24,7 @@
   <depend>rcl_interfaces</depend>
   <depend>realtime_tools</depend>
   <depend>tf2_msgs</depend>
+  <depend>tmc_realtime_tools</depend>
   <depend>tmc_utils</depend>
   <depend>trajectory_msgs</depend>
   <depend>urdf</depend>

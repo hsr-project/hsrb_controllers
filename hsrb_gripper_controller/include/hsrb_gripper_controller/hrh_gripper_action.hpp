@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2016 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -52,7 +47,7 @@ namespace hsrb_gripper_controller {
 // Default action monitor cycle [Hz]
 constexpr double kDefaultActionMonitorRate = 20.0;
 
-// Parameter acquisition with default value
+// Parameter retrieval with default value
 template <typename ParameterType>
 auto GetParameter(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node, const std::string& name,
                   const ParameterType& default_value) {
@@ -63,7 +58,7 @@ auto GetParameter(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node, const 
   }
 }
 
-// Parameter acquisition with default value, use default value even if parameter is non-positive
+// Parameter retrieval with default value, using default value even if the parameter is invalid
 template <typename ParameterType>
 auto GetPositiveParameter(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node, const std::string& name,
                           const ParameterType& default_value) {
@@ -75,7 +70,7 @@ auto GetPositiveParameter(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node
   return value;
 }
 
-// Parameter acquisition with default value, use default value even if parameter is negative
+// Parameter retrieval with default value, using default value even if the parameter is negative
 template <typename ParameterType>
 auto GetNonNegativeParameter(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node, const std::string& name,
                              const ParameterType& default_value) {
@@ -98,9 +93,9 @@ struct GoalCondition {
   double goal;
   /// Target arrival time
   rclcpp::Time expected_arrival_time;
-  /// Time to stop trajectory following
+  /// Time to stop trajectory tracking
   rclcpp::Time abort_time;
-  /// Allowable error of goal position
+  /// Allowable error for goal position
   double goal_tolerance;
 };
 
@@ -116,27 +111,27 @@ class IHrhGripperAction : public std::enable_shared_from_this<IHrhGripperAction>
   virtual int32_t target_mode() const = 0;
 
   /// Initialization
-  /// @param [in] node Node's SharedPtr
-  /// @return true: Success false: Failure
+  /// @param [in] node SharedPtr of the node
+  /// @return true: success false: failure
   virtual bool Init(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) = 0;
 
   /// Activation
-  /// @param [in] node Node's SharedPtr
-  /// @return true: Success false: Failure
+  /// @param [in] node SharedPtr of the node
+  /// @return true: success false: failure
   virtual bool Activate() = 0;
 
-  /// Cycle update process
+  /// Periodic update process
   /// @param [in] time Current time
   virtual void Update(const rclcpp::Time& time) = 0;
 
-  /// Interrupt active goal
+  /// Interrupt the active goal
   virtual void PreemptActiveGoal() = 0;
 
-  /// Get command value
+  /// Retrieve command value
   /// @return Command value
   virtual trajectory_msgs::msg::JointTrajectoryPoint GetReferenceState() = 0;
 
-  /// Get current value
+  /// Retrieve current value
   /// @return Current value
   virtual trajectory_msgs::msg::JointTrajectoryPoint GetFeedbackState() = 0;
 };
@@ -149,7 +144,7 @@ class HrhGripperAction : public IHrhGripperAction {
  public:
   /// Constructor
   /// @param [in] controller Controller
-  /// @param [in] action_name Action name to provide
+  /// @param [in] action_name Name of the provided action
   /// @param [in] target_mode Control mode used by the action
   HrhGripperAction(HrhGripperController* controller, const std::string& action_name, int32_t target_mode)
       : controller_(controller), action_name_(action_name), target_mode_(target_mode) {}
@@ -159,8 +154,8 @@ class HrhGripperAction : public IHrhGripperAction {
   int32_t target_mode() const override { return target_mode_; }
 
   /// Initialization
-  /// @param [in] node Node's SharedPtr
-  /// @return true: Success false: Failure
+  /// @param [in] node SharedPtr of the node
+  /// @return true: success false: failure
   bool Init(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) override {
     node_ = node;
 
@@ -181,11 +176,11 @@ class HrhGripperAction : public IHrhGripperAction {
   }
 
   /// Activation
-  /// @param [in] node Node's SharedPtr
-  /// @return true: Success false: Failure
+  /// @param [in] node SharedPtr of the node
+  /// @return true: success false: failure
   bool Activate() override { return true; }
 
-  /// Interrupt active goal
+  /// Interrupt the active goal
   void PreemptActiveGoal() override {
     auto active_goal = *goal_handle_buffer_.readFromNonRT();
     active_goal.reset();
@@ -194,7 +189,7 @@ class HrhGripperAction : public IHrhGripperAction {
   }
 
   /// Check if the action is active
-  /// @return true: Active false: Inactive
+  /// @return true: active false: inactive
   bool IsActive() const {
     const auto active_goal = *goal_handle_buffer_.readFromNonRT();
     if (!active_goal || !active_goal->valid()) {
@@ -268,9 +263,9 @@ class HrhGripperAction : public IHrhGripperAction {
   /// Action state update cycle
   double action_monitor_period_;
 
-  /// Node's SharedPtr
+  /// SharedPtr of the node
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
-  /// Timer during action execution
+  /// Timer for action execution
   rclcpp::TimerBase::SharedPtr goal_handle_timer_;
 };
 

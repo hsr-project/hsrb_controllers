@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2019 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -31,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file command_subscriber.hpp
-/// @brief Input command control class for omnidirectional cart control
+/// @brief Omnidirectional cart control input command control class
 #ifndef HSRB_BASE_CONTROLLERS_COMMAND_SUBSCRIBER_HPP_
 #define HSRB_BASE_CONTROLLERS_COMMAND_SUBSCRIBER_HPP_
 
@@ -61,12 +56,17 @@ class CommandSubscriber : private boost::noncopyable {
                     IControllerCommandInterface* controller);
   virtual ~CommandSubscriber() {}
 
+  void set_target_control(const std::shared_ptr<OmniBaseTrajectoryControl>& target_control) {
+    target_control_ = target_control;
+  }
+
  protected:
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
   IControllerCommandInterface* controller_;
+  std::shared_ptr<OmniBaseTrajectoryControl> target_control_;
 };
 
-/// Input speed command class
+/// Input velocity command class
 class CommandVelocitySubscriber : public CommandSubscriber {
  public:
   using Ptr = std::shared_ptr<CommandVelocitySubscriber>;
@@ -76,10 +76,10 @@ class CommandVelocitySubscriber : public CommandSubscriber {
   virtual ~CommandVelocitySubscriber() {}
 
  private:
-  // Input command speed callback
+  // Input command velocity callback
   void CommandVelocityCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
 
-  // Input speed subscriber
+  // Input velocity subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr velocity_subscriber_;
 };
 
@@ -104,8 +104,8 @@ class CommandTrajectorySubscriber : public CommandSubscriber {
 
 /// Input trajectory action command class
 // TODO(Takeshita) toleranceの扱い周りがros1の頃より劣化しているので要検討
-//                 The reason is that it is based on the implementation of follow_trajectory_controller
-//                 Not using velocity, ignoring the action goal's tolerance
+//                 The reason is that it is aligned with the implementation of follow_trajectory_controller
+//                 Not using velocity, ignoring the tolerance of the action goal
 class TrajectoryActionServer : public CommandSubscriber {
  public:
   using Ptr = std::shared_ptr<TrajectoryActionServer>;

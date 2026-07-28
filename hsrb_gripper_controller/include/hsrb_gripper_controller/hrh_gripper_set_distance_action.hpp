@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -59,7 +59,7 @@ class HrhGripperSetDistanceAction : public HrhGripperAction<tmc_control_msgs::ac
  protected:
   /// Implementation of action initialization
   bool InitImpl(const rclcpp_lifecycle::LifecycleNode::SharedPtr& node) override;
-  /// Update the action target
+  /// Update the action goal
   void UpdateActionImpl(const tmc_control_msgs::action::GripperSetDistance::Goal& goal) override;
 
   /// Calculate the target position from the error between the commanded and current opening width
@@ -83,7 +83,7 @@ class HrhGripperSetDistanceAction : public HrhGripperAction<tmc_control_msgs::ac
 
   /// Allowable error for goal position [m]
   double goal_tolerance_;
-  /// Speed threshold for stall determination [rad/s]
+  /// Velocity threshold for stall determination [rad/s]
   double stall_velocity_threshold_;
   /// Time for stall determination [s]
   double distance_control_stall_timeout_;

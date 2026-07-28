@@ -17,6 +17,7 @@ find_package(rclcpp_lifecycle REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(realtime_tools REQUIRED)
 find_package(tf2_msgs REQUIRED)
+find_package(tmc_realtime_tools REQUIRED)
 find_package(tmc_utils REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 find_package(urdf REQUIRED)
@@ -32,6 +33,8 @@ add_library(${PROJECT_NAME}_modules SHARED
   src/${PROJECT_NAME}/omni_base_state.cpp
   src/${PROJECT_NAME}/utils.cpp
 )
+target_compile_features(${PROJECT_NAME}_modules PUBLIC cxx_std_20)
+
 target_include_directories(${PROJECT_NAME}_modules
   PUBLIC include ${EIGEN3_INCLUDE_DIR})
 ament_target_dependencies(${PROJECT_NAME}_modules
@@ -48,6 +51,7 @@ ament_target_dependencies(${PROJECT_NAME}_modules
   rcl_interfaces
   realtime_tools
   tf2_msgs
+  tmc_realtime_tools
   tmc_utils
   trajectory_msgs
   urdf
@@ -136,4 +140,3 @@ ament_export_include_directories(
 )
 ament_export_libraries(${PROJECT_NAME} ${PROJECT_NAME}_modules)
 ament_package()
-

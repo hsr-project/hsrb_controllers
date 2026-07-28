@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2016 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -212,7 +207,7 @@ bool HrhGripperApplyForceAction::InitImpl(const rclcpp_lifecycle::LifecycleNode:
   return true;
 }
 
-/// Update the target of the action
+/// Update the action target
 void HrhGripperApplyForceAction::UpdateActionImpl(const tmc_control_msgs::action::GripperApplyEffort::Goal& goal) {
   command_buffer_.writeFromNonRT(goal.effort);
   stop_flag_buffer_.writeFromNonRT(goal.do_control_stop);
@@ -249,7 +244,7 @@ double HrhGripperApplyForceAction::GetCommandPos() {
 void HrhGripperApplyForceAction::CheckForSuccess(const rclcpp::Time& time) {
   double current_velocity = controller_->GetCurrentVelocity();
   if (fabs(current_velocity) > stall_velocity_threshold_) {
-    // Determine that it is moving and update the last time it moved
+    // Determine that it is moving and update the last movement time
     last_movement_time_ = time;
   } else if ((time - last_movement_time_).seconds() > stall_timeout_) {
     // Determine stall state

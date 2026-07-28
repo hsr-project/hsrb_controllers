@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2016 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -64,12 +59,12 @@ class HrhGripperApplyForceCalculator {
   /// Load calibration data for force control
   void LoadForceCalibrationData(const std::string& path, const rclcpp::Logger& logger);
 
-  /// Calculate current fingertip force in comparison with internal force
+  /// Calculate the current fingertip force by comparing it with internal force
   /// @return Current fingertip force [N]
   double CalculateForce(double hand_motor_pos, double spring_proximal_joint_pos,
                         const std::vector<std::vector<double> >& calib_data) const;
 
-  /// Calculate gripper internal force from calibration data
+  /// Calculate the gripper's internal force from calibration data
   /// @return Internal force [N]
   double CalculateInternalForce(double hand_motor_pos, const std::vector<double>& calib_p0,
                                 const std::vector<double>& calib_p1) const;
@@ -108,11 +103,11 @@ class HrhGripperApplyForceAction : public HrhGripperAction<tmc_control_msgs::act
   /// Update action target
   void UpdateActionImpl(const tmc_control_msgs::action::GripperApplyEffort::Goal& goal) override;
 
-  /// Allowable error of goal force [N]
+  /// Tolerance error for goal force [N]
   double goal_tolerance_;
-  /// Speed threshold for stall judgment [rad/s]
+  /// Stall detection speed threshold [rad/s]
   double stall_velocity_threshold_;
-  /// Time for stall judgment [s]
+  /// Stall detection time [s]
   double stall_timeout_;
 
   /// PID gain for force control
@@ -120,9 +115,9 @@ class HrhGripperApplyForceAction : public HrhGripperAction<tmc_control_msgs::act
   double force_control_igain_;
   double force_control_dgain_;
 
-  /// Limit value for error integration accumulation of I control
+  /// Error integral accumulation limit for I control
   double force_ierr_max_;
-  /// Error integration accumulation buffer of I control
+  /// Error integral accumulation buffer for I control
   double force_ierr_buff_;
 
   /// Low-pass filter coefficient for fingertip force
@@ -138,7 +133,7 @@ class HrhGripperApplyForceAction : public HrhGripperAction<tmc_control_msgs::act
   /// Action continuation flag buffer
   realtime_tools::RealtimeBuffer<bool> stop_flag_buffer_;
 
-  /// Calculate target position from the error between command value and current value of fingertip force
+  /// Calculate target position from the error between command value and current fingertip force
   /// @return Target position
   double GetCommandPos();
   /// Current fingertip force after passing through low-pass filter [N]
@@ -146,7 +141,7 @@ class HrhGripperApplyForceAction : public HrhGripperAction<tmc_control_msgs::act
   /// Current target position
   double current_command_pos_;
 
-  /// Action success/failure judgment
+  /// Action success/failure determination
   /// @param [in] time Current time
   void CheckForSuccess(const rclcpp::Time& time);
   /// Last operation time

@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2019 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -54,7 +49,7 @@ DAMAGE.
 
 namespace hsrb_base_controllers {
 
-/// Cart control means interface class
+/// Interface class for cart control methods
 class IBaseControlMethod : private boost::noncopyable {
  public:
   using Ptr = std::shared_ptr<IBaseControlMethod>;
@@ -89,7 +84,7 @@ class OmniBaseVelocityControl : public IBaseControlMethod {
   Eigen::Vector3d command_velocity_;
   // Time when the last speed command value was received
   rclcpp::Time last_velocity_subscribed_time_;
-  // Speed command value interruption judgment time
+  // Time threshold for determining speed command value interruption
   double command_timeout_;
 };
 
@@ -107,7 +102,7 @@ class OmniBaseTrajectoryControl : public IBaseControlMethod {
 
   // Update the trajectory being tracked, return true if a trajectory exists
   bool UpdateActiveTrajectory();
-  // Get target state of trajectory tracking
+  // Get target state for trajectory tracking
   bool SampleDesiredState(const rclcpp::Time& time,
                           const std::vector<double>& current_positions,
                           const std::vector<double>& current_velocities,
@@ -121,7 +116,7 @@ class OmniBaseTrajectoryControl : public IBaseControlMethod {
   // End trajectory tracking if conditions are met
   void TerminateControl(const rclcpp::Time& time, const double current_velocity);
   // Check tolerances during trajectory tracking
-  // Return a positive number to continue tracking, or the error code (0 ~ -5) of control_msgs/action/FollowJointTrajectory to stop tracking
+  // Return a positive number to continue tracking, or an error code (0 ~ -5) from control_msgs/action/FollowJointTrajectory to stop tracking
   int32_t CheckTorelances(const ControllerState& state,
                           const bool before_last_point,
                           const double time_from_trajectory_end);
@@ -136,22 +131,22 @@ class OmniBaseTrajectoryControl : public IBaseControlMethod {
   std::vector<std::string> coordinate_names_;
   // Speed threshold for determining trajectory tracking completion
   double stop_velocity_threshold_;
-  // Whether to connect from existing desired when a new trajectory comes
+  // Whether to connect to the existing desired trajectory when a new trajectory arrives
   // Variable names and behavior are aligned with JointTrajectoryController
   bool open_loop_control_;
   // Last sampled state
   rclcpp::Time last_sampled_time_;
   trajectory_msgs::msg::JointTrajectoryPoint last_command_state_;
-  // Whether there is a value in last_command_state_
-  // It is correct to enter the current value at Activate like JointTrajectoryController
-  // Implement with flag management as the change area will be wide
+  // Whether last_command_state_ contains a value
+  // It is correct to input the current value during activation like JointTrajectoryController
+  // Implement with flag management to avoid extensive changes
   bool has_last_command_state_;
 
   std::shared_ptr<joint_trajectory_controller::Trajectory>* trajectory_active_ptr_ = nullptr;
   std::shared_ptr<joint_trajectory_controller::Trajectory> trajectory_ptr_ = nullptr;
   realtime_tools::RealtimeBuffer<trajectory_msgs::msg::JointTrajectory::SharedPtr>  trajectory_msg_buffer_;
 
-  // Tolerance of trajectory tracking
+  // Tolerance width for trajectory tracking
   SegmentTolerances default_tolerances_;
   SegmentTolerances active_tolerances_;
 };
@@ -173,7 +168,7 @@ class OmniBaseOdomTrajectoryControl : public OmniBaseTrajectoryControl {
   void TerminateControl(const rclcpp::Time& time, const ControllerState& base_state);
 
  private:
-  // Control feedback gain
+  // Feedback gain for control
   Eigen::Vector3d feedback_gain_;
 };
 

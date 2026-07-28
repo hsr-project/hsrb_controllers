@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -88,6 +88,7 @@ TEST_F(SetDistanceActionTest, ActionAborted) {
 
   hardware_->velocity->set_current(0.04);
   hardware_->position->set_current(distance_calculator_->GetPositionFromDistance(0.057));
+
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
 
   auto goal_handle = future_goal_handle.get();
@@ -197,7 +198,7 @@ TEST_F(SetDistanceActionTest, StallVelocityThreshold) {
   EXPECT_FALSE((WaitForStatus<ActionType, rclcpp::node_interfaces::NodeBaseInterface::SharedPtr>(
     controller_, { node_->get_node_base_interface() }, goal_handle, action_msgs::msg::GoalStatus::STATUS_SUCCEEDED)));
 
-  // Wait a little since WaitForStatus above waits for 1 second
+  // Since WaitForStatus above waits for 1 second, wait a little
   std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
   hardware_->velocity->set_current(0.03);
@@ -230,7 +231,7 @@ TEST_F(SetDistanceActionTest, StallTimeout) {
   EXPECT_FALSE((WaitForStatus<ActionType, rclcpp::node_interfaces::NodeBaseInterface::SharedPtr>(
     controller_, { node_->get_node_base_interface() }, goal_handle, action_msgs::msg::GoalStatus::STATUS_SUCCEEDED)));
 
-  // Just wait for the remaining time since WaitForStatus above waits for 1 second
+  // Since WaitForStatus above waits for 1 second, just wait for the remaining time
   std::this_thread::sleep_for(std::chrono::milliseconds(150));
   controller_->update(node_->now(), rclcpp::Duration::from_seconds(0.1));
 

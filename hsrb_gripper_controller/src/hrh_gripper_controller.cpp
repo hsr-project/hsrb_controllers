@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2016 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -77,23 +72,6 @@ namespace hsrb_gripper_controller {
 
 HrhGripperController::HrhGripperController() {}
 
-controller_interface::return_type HrhGripperController::init(const std::string& controller_name,
-                                                             const std::string& namespace_,
-                                                             const rclcpp::NodeOptions& node_options) {
-  // NOTE: no member
-  // node_options.enable_logger_service(true);
-  const auto ret = ControllerInterface::init(controller_name, namespace_, node_options);
-  if (ret != controller_interface::return_type::OK) {
-    return ret;
-  }
-
-  if (InitImpl()) {
-    return controller_interface::return_type::OK;
-  } else {
-    return controller_interface::return_type::ERROR;
-  }
-}
-
 bool HrhGripperController::InitImpl() {
   std::vector<std::string> joint_names =
       GetParameter(get_node(), "joints", std::vector<std::string>({ "hand_motor_joint" }));
@@ -141,7 +119,7 @@ controller_interface::return_type HrhGripperController::update(const rclcpp::Tim
   if (active_action_) {
     active_action_->Update(get_node()->get_clock()->now());
 
-    // Retrieve state data from the running action
+    // Retrieve state data from the currently running action
     reference = active_action_->GetReferenceState();
     feedback = active_action_->GetFeedbackState();
   } else {
@@ -152,7 +130,7 @@ controller_interface::return_type HrhGripperController::update(const rclcpp::Tim
     reference = feedback;
   }
   int32_t command_mode = *(command_control_mode_.readFromRT());
-  command_interfaces_[command_drive_mode_index_].set_value(static_cast<double>(command_mode));
+  static_cast<void>(command_interfaces_[command_drive_mode_index_].set_value(static_cast<double>(command_mode)));
 
   // Publish the state
   gripper_state_publisher_->Publish(reference, feedback, time);
@@ -164,7 +142,11 @@ controller_interface::return_type HrhGripperController::update(const rclcpp::Tim
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn HrhGripperController::on_init() {
-  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+  if (InitImpl()) {
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+  } else {
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
+  }
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn HrhGripperController::on_configure(
@@ -185,7 +167,7 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn HrhGri
   std::string controller_state_name = gripper_namespace_ + "/controller_state";
   gripper_state_publisher_ = std::make_shared<StatePublisher>(get_node(), controller_state_name, joint_name_);
 
-  // Set the publisher for the distance between fingertips
+  // Set the fingertip distance publisher
   std::string fingertip_distance_name = gripper_namespace_ + "/fingertip_distance";
   gripper_distance_publisher_ = std::make_shared<DistancePublisher>(get_node(), fingertip_distance_name);
 
@@ -194,7 +176,7 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn HrhGri
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn HrhGripperController::on_activate(
     const rclcpp_lifecycle::State& previous_state) {
-  // Since the order is assign_interfaces => activate, it can be used now
+  // Since the order is assign_interfaces => activate, it is already usable
   for (const auto& state_interface : state_interfaces_) {
     if (state_interface.get_interface_name() == "current_drive_mode") {
       command_control_mode_.initRT(static_cast<int32_t>(state_interface.get_value()));
@@ -267,15 +249,15 @@ double HrhGripperController::GetRightSpringPosition() const {
 double HrhGripperController::GetCurrent() const { return state_interfaces_[current_index_].get_value(); }
 
 void HrhGripperController::SetComandPosition(double position) {
-  command_interfaces_[command_position_index_].set_value(position);
+  static_cast<void>(command_interfaces_[command_position_index_].set_value(position));
 }
 
 void HrhGripperController::SetGraspCommand(bool grasping_flag, double effort) {
-  command_interfaces_[command_effort_index_].set_value(effort);
+  static_cast<void>(command_interfaces_[command_effort_index_].set_value(effort));
   if (grasping_flag) {
-    command_interfaces_[command_grasping_flag_index_].set_value(1.0);
+    static_cast<void>(command_interfaces_[command_grasping_flag_index_].set_value(1.0));
   } else {
-    command_interfaces_[command_grasping_flag_index_].set_value(-1.0);
+    static_cast<void>(command_interfaces_[command_grasping_flag_index_].set_value(-1.0));
   }
 }
 

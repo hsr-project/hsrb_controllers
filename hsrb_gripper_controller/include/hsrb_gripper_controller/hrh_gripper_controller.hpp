@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2016 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -55,9 +50,6 @@ class HrhGripperController : public controller_interface::ControllerInterface {
 
   HrhGripperController();
 
-  controller_interface::return_type init(const std::string& controller_name, const std::string& namespace_ = "",
-                                         const rclcpp::NodeOptions& node_options = rclcpp::NodeOptions()) override;
-
   controller_interface::InterfaceConfiguration command_interface_configuration() const override;
   controller_interface::InterfaceConfiguration state_interface_configuration() const override;
   controller_interface::return_type update(const rclcpp::Time& time, const rclcpp::Duration& period) override;
@@ -93,7 +85,7 @@ class HrhGripperController : public controller_interface::ControllerInterface {
 
   std::string joint_name() const { return joint_name_; }
 
-  /// Change control mode
+  /// Change the control mode
   /// @param[in] mode Control mode
   void ChangeControlMode(std::shared_ptr<IHrhGripperAction> action);
 
@@ -112,7 +104,7 @@ class HrhGripperController : public controller_interface::ControllerInterface {
   /// Target joint name
   std::string joint_name_;
 
-  /// Names of left and right finger joints
+  /// Left and right finger joint names
   std::string left_spring_joint_;
   std::string right_spring_joint_;
 

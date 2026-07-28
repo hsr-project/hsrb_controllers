@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -279,7 +279,8 @@ class ServoDiagnosticBroadcasterTest : public ServoDiagnosticBroadcasterTestBase
 void ServoDiagnosticBroadcasterTest::SetUp(const double publish_rate) {
   ServoDiagnosticBroadcasterTestBase::SetUp();
   controller_ = std::make_shared<ServoDiagnosticBroadcaster>();
-  EXPECT_EQ(controller_->init(kControllerNodeName), controller_interface::return_type::OK);
+  rclcpp::NodeOptions options = rclcpp::NodeOptions();
+  EXPECT_EQ(controller_->init(kControllerNodeName, "", 0, "", options), controller_interface::return_type::OK);
 
   controller_->get_node()->declare_parameter("publish_rate", publish_rate);
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -632,7 +633,7 @@ void ServoDiagnosticBroadcasterJointTest::SetUp(const double publish_rate) {
   node_options.parameter_overrides() = {
       rclcpp::Parameter("joints", std::vector<std::string>({"valid_joint_1"}))};
   controller_ = std::make_shared<ServoDiagnosticBroadcaster>();
-  EXPECT_EQ(controller_->init(kControllerNodeName, "", node_options), controller_interface::return_type::OK);
+  EXPECT_EQ(controller_->init(kControllerNodeName, "", 0, "", node_options), controller_interface::return_type::OK);
 
   controller_->get_node()->declare_parameter("publish_rate", publish_rate);
   std::this_thread::sleep_for(std::chrono::milliseconds(50));

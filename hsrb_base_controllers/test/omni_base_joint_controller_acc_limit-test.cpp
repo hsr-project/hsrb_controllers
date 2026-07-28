@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -154,7 +154,7 @@ class OmniBaseJointControllerAccLimitTest : public ::testing::Test {
   void ValidateBaseOutputPattern(const int32_t index, const double distance,
                                  const Trend first_trend, const uint32_t trend_num);
 
-  // Although it could be done with parameterized tests instead of helper functions, I thought it would be easier to understand if the slight differences in tolerance were written on the spot, so I did it this way
+  // Although it could be done with parameterized tests instead of helper functions, it was considered more understandable to write the subtle differences in tolerance directly.
   void MoveForwardFromIdleHelper(const RobotDescription& desc, const double velocity);
   void MoveLeftFromIdleHelper(const RobotDescription& desc, const double velocity, const double tolerance);
   void MoveBackwardFromIdleHelper(const RobotDescription& desc, const double velocity, const double tolerance,
@@ -182,7 +182,7 @@ class OmniBaseJointControllerAccLimitTest : public ::testing::Test {
 };
 
 void OmniBaseJointControllerAccLimitTest::SetUpImpl(const RobotDescription& desc) {
-  // LifecycleNode is not the subject of the test, so the success or failure is not checked
+  // LifecycleNode is not the test subject, so success or failure is not checked.
   auto node = rclcpp_lifecycle::LifecycleNode::make_shared("test_node");
   node->configure();
   controller_ = std::make_shared<OmniBaseJointControllerBaseRollVelocity>(node);
@@ -192,7 +192,7 @@ void OmniBaseJointControllerAccLimitTest::SetUpImpl(const RobotDescription& desc
   node->declare_parameter("joints.l_wheel", "base_l_drive_wheel_joint");
   node->declare_parameter("robot_description", desc.robot_description);
   node->declare_parameter("parameter_connection_timeout", 0);
-  // For now, set it to HSR-C
+  // For now, set it to HSR-C.
   // TODO(Takeshita) パラメータ化したテスト
   node->declare_parameter("yaw_velocity_limit", desc.yaw_velocity_limit);
   node->declare_parameter("wheel_velocity_limit", desc.wheel_velocity_limit);
@@ -209,12 +209,12 @@ void OmniBaseJointControllerAccLimitTest::SetUpImpl(const RobotDescription& desc
   base_desired_history_.push_back({stamp_, Eigen::Vector3d::Zero()});
   base_output_history_.push_back({stamp_, Eigen::Vector3d::Zero()});
 
-  // Because the cart doesn't turn when reversing if it's straight
+  // If it's straight, the cart won't turn when reversing.
   hardware_.steer_handle->set_current_pos(0.01);
 }
 
 void OmniBaseJointControllerAccLimitTest::TearDown() {
-  // Output the results to a file for operation confirmation
+  // Output the results to a file for operation confirmation.
   const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
   const auto filename = std::string(info->test_suite_name()) + "_" + info->name() + ".csv";
 
@@ -364,7 +364,7 @@ void OmniBaseJointControllerAccLimitTest::ValidateBaseOutputPattern(
     const auto diff = base_output_history_[i].velocities[index] -
         base_output_history_[i - distance_int].velocities[index];
     Trend trend;
-    // Allow some noise
+    // Allow some noise.
     constexpr double kWeakEpsilon = 1.0e-3;
     if (diff > kWeakEpsilon) {
       trend = Trend::kUp;
@@ -445,7 +445,7 @@ void OmniBaseJointControllerAccLimitTest::MoveLeftFromIdleHelper(
   ValidateJointOutput(desc);
   ValidateBaseOutputLast(0.0, velocity, 0.0);
 
-  // If the acceleration setting doesn't allow for smooth turns, it will wobble and not accelerate monotonically
+  // If the acceleration setting doesn't allow smooth turning, it will wobble and not accelerate monotonically.
   ValidateBaseOutputZero(kIndexBaseX, tolerance);
   ValidateBaseOutputWeakMonotonic(kIndexBaseY, Trend::kUp, velocity, 0.2);
   ValidateBaseOutputZero(kIndexBaseTheta);
@@ -491,7 +491,7 @@ void OmniBaseJointControllerAccLimitTest::MoveBackwardFromIdleHelper(
   ValidateJointOutput(desc);
   ValidateBaseOutputLast(-velocity, 0.0, 0.0);
 
-  // If the acceleration setting doesn't allow for smooth turns, it will wobble and not accelerate monotonically
+  // If the acceleration setting doesn't allow smooth turning, it will wobble and not accelerate monotonically.
   ValidateBaseOutputPattern(kIndexBaseX, 0.1, Trend::kDown, trend_num);
   ValidateBaseOutputZero(kIndexBaseY, tolerance);
   ValidateBaseOutputZero(kIndexBaseTheta);
@@ -598,7 +598,7 @@ void OmniBaseJointControllerAccLimitTest::MoveLeftOnMovingHelper(
   ValidateJointOutput(desc);
   ValidateBaseOutputLast(0.0, velocity, 0.0);
 
-  // If the acceleration setting doesn't allow for smooth turns, it won't accelerate monotonically
+  // If the acceleration setting doesn't allow smooth turning, it will not accelerate monotonically.
   ValidateBaseOutputPattern(kIndexBaseX, 0.1, Trend::kDown, x_trend_num);
   ValidateBaseOutputPattern(kIndexBaseY, 0.1, Trend::kUp, y_trend_num);
   ValidateBaseOutputZero(kIndexBaseTheta);
@@ -639,7 +639,7 @@ void OmniBaseJointControllerAccLimitTest::MoveBackwardOnMovingHelper(
   SetUpImpl(desc);
 
   for (; stamp_ < FirstMoveTimeout; ) {
-    // If it's completely straight, the cart won't turn when reversing, so make it slightly diagonal
+    // If it's completely forward, the cart won't turn when reversing, so make it slightly diagonal.
     UpdateOnce(velocity * std::cos(0.01), velocity * std::sin(0.01), 0.0);
   }
   ValidateJointOutput(desc);
@@ -652,7 +652,7 @@ void OmniBaseJointControllerAccLimitTest::MoveBackwardOnMovingHelper(
   }
   ValidateJointOutput(desc);
   ValidateBaseOutputLast(-velocity, 0.0, 0.0);
-  // If the acceleration setting doesn't allow for smooth turns, it will wobble and not accelerate monotonically
+  // If the acceleration setting doesn't allow smooth turning, it will wobble and not accelerate monotonically.
   ValidateBaseOutputPattern(kIndexBaseX, 0.1, Trend::kDown, trend_num);
   ValidateBaseOutputZero(kIndexBaseY, tolerance);
   ValidateBaseOutputZero(kIndexBaseTheta);

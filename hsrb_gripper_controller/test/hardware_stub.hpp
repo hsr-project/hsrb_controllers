@@ -1,22 +1,17 @@
 /*
-Copyright (c) 2022 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
 below) provided that the following conditions are met:
-
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
-
 * Redistributions in binary form must reproduce the above copyright notice,
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
-
 * Neither the name of the copyright holder nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
   prior written permission.
-
 NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
 LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -47,9 +42,10 @@ class Handle {
 
   Handle(const std::string& joint_name, const std::string& state_name, const std::string& command_name)
       : current_(0.0),
-        command_(0.0),
-        state_handle_(joint_name, state_name, &current_),
-        command_handle_(joint_name, command_name, &command_) {}
+        command_(0.0) {
+    state_handle_ = std::make_shared<hardware_interface::StateInterface>(joint_name, state_name, &current_);
+    command_handle_ = std::make_shared<hardware_interface::CommandInterface>(joint_name, command_name, &command_);
+  }
 
   Handle(const std::string& joint_name, const std::string& interface_name)
       : Handle(joint_name, interface_name, interface_name) {}
@@ -60,7 +56,7 @@ class Handle {
     return hardware_interface::LoanedStateInterface(state_handle_);
   }
   hardware_interface::LoanedCommandInterface GetCommandInterface() {
-    return hardware_interface::LoanedCommandInterface(command_handle_);
+    return hardware_interface::LoanedCommandInterface(command_handle_, nullptr);
   }
 
   double command() const { return command_; }
@@ -70,8 +66,8 @@ class Handle {
   double current_;
   double command_;
 
-  hardware_interface::StateInterface state_handle_;
-  hardware_interface::CommandInterface command_handle_;
+  hardware_interface::StateInterface::SharedPtr state_handle_;
+  hardware_interface::CommandInterface::SharedPtr command_handle_;
 };
 
 class BoolHandle : public Handle {
