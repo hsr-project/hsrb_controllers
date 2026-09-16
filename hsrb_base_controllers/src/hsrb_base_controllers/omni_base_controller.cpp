@@ -75,7 +75,9 @@ controller_interface::return_type OmniBaseController::update(
   Eigen::Vector3d joint_velocities;
   if (!joint_controller_->GetJointPositions(joint_positions) ||
       !joint_controller_->GetJointVelocities(joint_velocities)) {
-    return controller_interface::return_type::ERROR;
+    // Since Jazzy, controller_manager stops the controller when an update fails.
+    // HSR-C occasionally receives invalid velocities; ignore them and return OK to keep running.
+    return controller_interface::return_type::OK;
   }
 
   const double period_sec = period.seconds();
