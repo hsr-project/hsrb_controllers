@@ -7,10 +7,6 @@ Changelog for package hsrb_base_controllers
 * Migration to ROS2 jazzy
 * Contributors: Keisuke Takeshita, Shigeo Tsuduki, Yuki Hidaka, Masayuki Masuda
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Changelog for package hsrb_base_controllers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 2.4.0 (2025-12-04)
 -------------------
 * Refactor ternary search functions into a single templated version using std::less.
